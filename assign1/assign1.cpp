@@ -21,10 +21,36 @@ struct point {
     double z;
 };
 
-struct vector {
+class vector {
+public:
     double x;
     double y;
     double z;
+    
+    friend vector operator+(const vector &a, const vector &b);
+    friend vector operator-(const vector &a, const vector &b);
+
+    
+    friend vector operator+(const vector &a, const vector &b)
+    {
+        vector c;
+        c.x = a.x + b.x;
+        c.y = a.y + b.y;
+        c.z = a.z + b.z;
+        
+        return c;
+    }
+    
+    friend vector operator-(const vector &a, const vector &b)
+    {
+        vector c;
+        c.x = a.x - b.x;
+        c.y = a.y - b.y;
+        c.z = a.z - b.z;
+        
+        return c;
+    }
+
 };
 
 
@@ -35,10 +61,12 @@ vector P;
 vector crossProduct(vector a, vector b);
 vector unitVector(vector a);
 vector vectorAdd(vector a, vector b);
+vector vectorSub(vector a, vector b);
+
 
 double catmullRomSplineFormula(double p0, double p1, double p2, double p3, double t);
 double derivativeOfCatmullRomSplineFormula(double p0, double p1, double p2, double p3, double t);
-
+void drawVector(vector a);
 
 /* spline struct which contains how many control points, and an array of control points */
 struct spline {
@@ -234,8 +262,208 @@ void display()
     
     
     
-    
-    
+    // TRYING TO MAKE CUBES FOR THE SIDE RAILS
+    /* 
+    double s = 0.1;
+    for (int t = 1; t < g_Splines[0].numControlPoints-2; t++)
+    {
+        for (double u = 0.0; u < 1.0; u+=0.01)
+        {
+            double p0x = g_Splines[0].points[t-1].x;
+            double p1x = g_Splines[0].points[t].x;
+            double p2x = g_Splines[0].points[t+1].x;
+            double p3x = g_Splines[0].points[t+2].x;
+            P.x = catmullRomSplineFormula(p0x,p1x,p2x,p3x,u);
+            
+            double p0y = g_Splines[0].points[t-1].y;
+            double p1y = g_Splines[0].points[t].y;
+            double p2y = g_Splines[0].points[t+1].y;
+            double p3y = g_Splines[0].points[t+2].y;
+            P.y = catmullRomSplineFormula(p0y,p1y,p2y,p3y,u);
+            
+            double p0z = g_Splines[0].points[t-1].z;
+            double p1z = g_Splines[0].points[t].z;
+            double p2z = g_Splines[0].points[t+1].z;
+            double p3z = g_Splines[0].points[t+2].z;
+            P.z = catmullRomSplineFormula(p0z,p1z,p2z,p3z,u);
+            
+            glColor3f(0.5, 0.5, 0.5);
+            //            // scale the B and T vectors
+            //            T0.x *= s;
+            //            T0.y *= s;
+            //            T0.z *= s;
+            //            
+            //            B0.x *= s;
+            //            B0.y *= s;
+            //            B0.z *= s;
+            //            
+            vector v0 = P+B0-T0-N0;
+            vector v1 = P-B0-T0-N0;
+            vector v2 = P-B0-T0+N0;
+            vector v3 = P+B0-T0+N0;
+            
+            vector v4 = P+B0+T0-N0;
+            vector v5 = P-B0+T0-N0;
+            vector v6 = P-B0+T0+N0;
+            vector v7 = P+B0+T0+N0;
+            
+            //front face
+            glBegin(GL_QUADS);
+            drawVector(v0);
+            drawVector(v3);
+            drawVector(v2);
+            drawVector(v1);
+            glEnd();
+            
+            //top face
+            glBegin(GL_QUADS);
+            drawVector(v4);
+            drawVector(v7);
+            drawVector(v3);
+            drawVector(v0);
+            glEnd();
+            
+            //left face
+            glBegin(GL_QUADS);
+            drawVector(v4);
+            drawVector(v0);
+            drawVector(v1);
+            drawVector(v5);
+            glEnd();
+            
+            //right face
+            glBegin(GL_QUADS);
+            drawVector(v3);
+            drawVector(v7);
+            drawVector(v6);
+            drawVector(v2);
+            glEnd();
+            
+            //back face
+            glBegin(GL_QUADS);
+            drawVector(v7);
+            drawVector(v4);
+            drawVector(v5);
+            drawVector(v6);
+            glEnd();
+            
+            //bottom face
+            glBegin(GL_QUADS);
+            drawVector(v1);
+            drawVector(v2);
+            drawVector(v6);
+            drawVector(v5);
+            glEnd();
+            
+        }
+    } */
+        /*
+            
+            if (t == 1)
+            {
+                vector V0; // Arbitrary Vector used to calculate the Binormal B
+                V0.x = 0;
+                V0.y = 1;
+                V0.z = 0;
+                
+                
+                // Tangent Vector
+                T0.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, u);
+                T0.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
+                T0.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
+                
+                T0.x *= s;
+                T0.y *= s;
+                T0.z *= s;
+                
+                
+                // Normal Vector 
+                N0 = unitVector(crossProduct(T0, V0));  // N0 = unit(T0xV0)
+                
+                
+                // Binormal Vector
+                B0 = unitVector(crossProduct(T0, N0)); // B0 = unit(T0xN0)
+                
+                B0.x *= s;
+                B0.y *= s;
+                B0.z *= s;
+                
+                vector v0 = P+B0-T0-N0;
+                vector v1 = P-B0-T0-N0;
+                vector v2 = P-B0-T0+N0;
+                vector v3 = P+B0-T0+N0;
+                
+                vector v4 = P+B0+T0-N0;
+                vector v5 = P-B0+T0-N0;
+                vector v6 = P-B0+T0+N0;
+                vector v7 = P+B0+T0+N0;
+                
+                glBegin(GL_QUADS);
+                drawVector(v0);
+                drawVector(v1);
+                drawVector(v2);
+                drawVector(v3);
+                drawVector(v4);
+                drawVector(v5);
+                drawVector(v6);
+                drawVector(v7);
+                glEnd();
+                
+            }
+            else if (t > 1)  // calculating further NTB sets (after the initial one)
+            {
+                // Tangent Vector
+                T1.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, u);
+                T1.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
+                T1.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
+                
+                T1.x *= s;
+                T1.y *= s;
+                T1.z *= s;
+                
+                
+                N1 = unitVector(crossProduct(B0,T1)); // N1 = unit(B0xT0) (note: T0 is essentially T1)
+                
+                B1 = unitVector(crossProduct(T1, N1)); // B1 = unit(T1xN1)
+                
+                B1.x *= s;
+                B1.y *= s;
+                B1.z *= s;
+                
+                
+                // Draw the second track
+                glColor3f(0.1, 0.56, 0.25);
+                vector v0 = P+B1-T1-N0+N1;
+                vector v1 = P-B1-T1-N0+N1;
+                vector v2 = P-B1-T1+N0+N1;
+                vector v3 = P+B1-T1+N0+N1;
+                
+                vector v4 = P+B1+T1-N0+N1;
+                vector v5 = P-B1+T1-N0+N1;
+                vector v6 = P-B1+T1+N0+N1;
+                vector v7 = P+B1+T1+N0+N1;
+                
+                glBegin(GL_QUADS);
+                drawVector(v0);
+                drawVector(v1);
+                drawVector(v2);
+                drawVector(v3);
+                drawVector(v4);
+                drawVector(v5);
+                drawVector(v6);
+                drawVector(v7);
+                glEnd();
+                
+                // for the next iteration:
+                B0 = B1; // the current B is the soon-to-be old B
+                N0 = N1; //     ''      N          ''           N
+                T0 = T1; //     ''      T          ''           T
+                
+            }
+        }
+    }
+           */
+   // glEnd();
     
     
     
@@ -400,6 +628,11 @@ double derivativeOfCatmullRomSplineFormula(double p0, double p1, double p2, doub
                  + 3*pow(t,2)*(-p0 + 3*p1 - 3*p2 + p3));
 }
 
+/* This function takes a vector and draws it using glVertex3d(...) */
+void drawVector(vector a) {
+    glVertex3d(a.x, a.y, a.z);
+}
+
 /* Returns the cross product of the 2 vectors, a x b. */
 vector crossProduct(vector a, vector b) {
     vector c;
@@ -425,6 +658,16 @@ vector vectorAdd(vector a, vector b)
     return c;
 }
 
+/* Performs vector subtraction. Returns vector c = vector a - vector b. */
+vector vectorSub(vector a, vector b)
+{
+    vector c;
+    c.x = a.x - b.x;
+    c.y = a.y - b.y;
+    c.z = a.z - b.z;
+    
+    return c;
+}
 
 /* Returns the unit vector of vector a. */
 vector unitVector(vector a) {
