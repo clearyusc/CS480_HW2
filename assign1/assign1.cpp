@@ -1078,8 +1078,8 @@ int main (int argc, char ** argv)
                 T1.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, u);
                 T1.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
                 T1.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
-                
-                N1 = unitVector(crossProduct(B0,T1)); // N1 = unit(B0xT0) (note: T0 is essentially T1)
+               
+                N1 = unitVector(crossProduct(B0,T1)); // N1 = unit(B0xT1) 
                 
                 B1 = unitVector(crossProduct(T1, N1)); // B1 = unit(T1xN1)
                 
@@ -1092,6 +1092,7 @@ int main (int argc, char ** argv)
                 B0 = B1; // the current B is the soon-to-be old B
                 N0 = N1; //     ''      N          ''           N
                 T0 = T1; //     ''      T          ''           T
+
                 
             }
         
