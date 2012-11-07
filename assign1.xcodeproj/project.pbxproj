@@ -7,8 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		610E7E18160BE9B900D0BBAA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 610E7E17160BE9B900D0BBAA /* main.c */; };
-		610E7E1A160BE9B900D0BBAA /* assign1.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 610E7E19160BE9B900D0BBAA /* assign1.1 */; };
+		610E7E21160BE9C900D0BBAA /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 610E7E20160BE9C900D0BBAA /* GLUT.framework */; };
+		610E7E23160BE9D700D0BBAA /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 610E7E22160BE9D700D0BBAA /* OpenGL.framework */; };
+		610E7E4D160BEA5100D0BBAA /* assign1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 610E7E26160BEA5100D0BBAA /* assign1.cpp */; };
+		610E7E50160BEA5100D0BBAA /* adaptcm.c in Sources */ = {isa = PBXBuildFile; fileRef = 610E7E39160BEA5100D0BBAA /* adaptcm.c */; };
+		610E7E52160BEA5100D0BBAA /* jpeg.c in Sources */ = {isa = PBXBuildFile; fileRef = 610E7E3F160BEA5100D0BBAA /* jpeg.c */; };
+		610E7E53160BEA5100D0BBAA /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 610E7E41160BEA5100D0BBAA /* libjpeg.a */; };
+		610E7E55160BEA5100D0BBAA /* pic.c in Sources */ = {isa = PBXBuildFile; fileRef = 610E7E43160BEA5100D0BBAA /* pic.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -18,16 +23,54 @@
 			dstPath = /usr/share/man/man1/;
 			dstSubfolderSpec = 0;
 			files = (
-				610E7E1A160BE9B900D0BBAA /* assign1.1 in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5B566B97163901D200891163 /* circle.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = circle.sp; sourceTree = "<group>"; };
+		5B566B98163901D200891163 /* cs1.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cs1.sp; sourceTree = "<group>"; };
+		5B566B99163901D200891163 /* goodRide.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = goodRide.sp; sourceTree = "<group>"; };
+		5B566B9A163901D200891163 /* leftturn.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = leftturn.sp; sourceTree = "<group>"; };
+		5B566B9B163901D200891163 /* rollerCoaster.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = rollerCoaster.sp; sourceTree = "<group>"; };
+		5B566B9C163901D200891163 /* star.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = star.sp; sourceTree = "<group>"; };
+		5B566B9D163901D200891163 /* straightLine.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = straightLine.sp; sourceTree = "<group>"; };
+		5B566B9E163901D200891163 /* upsidedown.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = upsidedown.sp; sourceTree = "<group>"; };
+		5B566B9F163901D200891163 /* xaxis.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = xaxis.sp; sourceTree = "<group>"; };
+		5B566BA0163901D200891163 /* xyz.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = xyz.sp; sourceTree = "<group>"; };
+		5B566BA1163901D200891163 /* yaxis.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yaxis.sp; sourceTree = "<group>"; };
+		5B566BA2163901D200891163 /* zaxis.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = zaxis.sp; sourceTree = "<group>"; };
+		5B566BA41639032300891163 /* track.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = track.txt; sourceTree = "<group>"; };
 		610E7E13160BE9B900D0BBAA /* assign1 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = assign1; sourceTree = BUILT_PRODUCTS_DIR; };
-		610E7E17160BE9B900D0BBAA /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		610E7E19160BE9B900D0BBAA /* assign1.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = assign1.1; sourceTree = "<group>"; };
+		610E7E20160BE9C900D0BBAA /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		610E7E22160BE9D700D0BBAA /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		610E7E26160BEA5100D0BBAA /* assign1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = assign1.cpp; sourceTree = "<group>"; };
+		610E7E28160BEA5100D0BBAA /* GrandTeton-128.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "GrandTeton-128.jpg"; sourceTree = "<group>"; };
+		610E7E29160BEA5100D0BBAA /* GrandTeton-256.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "GrandTeton-256.jpg"; sourceTree = "<group>"; };
+		610E7E2A160BEA5100D0BBAA /* GrandTeton-512.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "GrandTeton-512.jpg"; sourceTree = "<group>"; };
+		610E7E2B160BEA5100D0BBAA /* GrandTeton-768.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "GrandTeton-768.jpg"; sourceTree = "<group>"; };
+		610E7E2D160BEA5100D0BBAA /* OhioPyle-128.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "OhioPyle-128.jpg"; sourceTree = "<group>"; };
+		610E7E2E160BEA5100D0BBAA /* OhioPyle-256.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "OhioPyle-256.jpg"; sourceTree = "<group>"; };
+		610E7E2F160BEA5100D0BBAA /* OhioPyle-512.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "OhioPyle-512.jpg"; sourceTree = "<group>"; };
+		610E7E30160BEA5100D0BBAA /* OhioPyle-768.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "OhioPyle-768.jpg"; sourceTree = "<group>"; };
+		610E7E32160BEA5100D0BBAA /* SantaMonicaMountains-128.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "SantaMonicaMountains-128.jpg"; sourceTree = "<group>"; };
+		610E7E33160BEA5100D0BBAA /* SantaMonicaMountains-256.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "SantaMonicaMountains-256.jpg"; sourceTree = "<group>"; };
+		610E7E34160BEA5100D0BBAA /* SantaMonicaMountains-512.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "SantaMonicaMountains-512.jpg"; sourceTree = "<group>"; };
+		610E7E35160BEA5100D0BBAA /* SantaMonicaMountains-768.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "SantaMonicaMountains-768.jpg"; sourceTree = "<group>"; };
+		610E7E36160BEA5100D0BBAA /* spiral.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = spiral.jpg; sourceTree = "<group>"; };
+		610E7E37160BEA5100D0BBAA /* spiralex2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = spiralex2.jpg; sourceTree = "<group>"; };
+		610E7E39160BEA5100D0BBAA /* adaptcm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = adaptcm.c; sourceTree = "<group>"; };
+		610E7E3A160BEA5100D0BBAA /* adaptcm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = adaptcm.h; sourceTree = "<group>"; };
+		610E7E3C160BEA5100D0BBAA /* jconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jconfig.h; sourceTree = "<group>"; };
+		610E7E3D160BEA5100D0BBAA /* jerror.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jerror.h; sourceTree = "<group>"; };
+		610E7E3E160BEA5100D0BBAA /* jmorecfg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jmorecfg.h; sourceTree = "<group>"; };
+		610E7E3F160BEA5100D0BBAA /* jpeg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jpeg.c; sourceTree = "<group>"; };
+		610E7E40160BEA5100D0BBAA /* jpeglib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jpeglib.h; sourceTree = "<group>"; };
+		610E7E41160BEA5100D0BBAA /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libjpeg.a; sourceTree = "<group>"; };
+		610E7E42160BEA5100D0BBAA /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		610E7E43160BEA5100D0BBAA /* pic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pic.c; sourceTree = "<group>"; };
+		610E7E44160BEA5100D0BBAA /* pic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pic.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,15 +78,39 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				610E7E23160BE9D700D0BBAA /* OpenGL.framework in Frameworks */,
+				610E7E21160BE9C900D0BBAA /* GLUT.framework in Frameworks */,
+				610E7E53160BEA5100D0BBAA /* libjpeg.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5B566B96163901D200891163 /* splines */ = {
+			isa = PBXGroup;
+			children = (
+				5B566B97163901D200891163 /* circle.sp */,
+				5B566B98163901D200891163 /* cs1.sp */,
+				5B566B99163901D200891163 /* goodRide.sp */,
+				5B566B9A163901D200891163 /* leftturn.sp */,
+				5B566B9B163901D200891163 /* rollerCoaster.sp */,
+				5B566B9C163901D200891163 /* star.sp */,
+				5B566B9D163901D200891163 /* straightLine.sp */,
+				5B566B9E163901D200891163 /* upsidedown.sp */,
+				5B566B9F163901D200891163 /* xaxis.sp */,
+				5B566BA0163901D200891163 /* xyz.sp */,
+				5B566BA1163901D200891163 /* yaxis.sp */,
+				5B566BA2163901D200891163 /* zaxis.sp */,
+			);
+			path = splines;
+			sourceTree = "<group>";
+		};
 		610E7E08160BE9B900D0BBAA = {
 			isa = PBXGroup;
 			children = (
+				610E7E22160BE9D700D0BBAA /* OpenGL.framework */,
+				610E7E20160BE9C900D0BBAA /* GLUT.framework */,
 				610E7E16160BE9B900D0BBAA /* assign1 */,
 				610E7E14160BE9B900D0BBAA /* Products */,
 			);
@@ -60,11 +127,53 @@
 		610E7E16160BE9B900D0BBAA /* assign1 */ = {
 			isa = PBXGroup;
 			children = (
-				610E7E17160BE9B900D0BBAA /* main.c */,
-				610E7E19160BE9B900D0BBAA /* assign1.1 */,
+				5B566B96163901D200891163 /* splines */,
+				610E7E24160BEA5100D0BBAA /* assign1 */,
+				610E7E38160BEA5100D0BBAA /* pic */,
 			);
 			path = assign1;
 			sourceTree = "<group>";
+		};
+		610E7E24160BEA5100D0BBAA /* assign1 */ = {
+			isa = PBXGroup;
+			children = (
+				5B566BA41639032300891163 /* track.txt */,
+				610E7E26160BEA5100D0BBAA /* assign1.cpp */,
+				610E7E28160BEA5100D0BBAA /* GrandTeton-128.jpg */,
+				610E7E29160BEA5100D0BBAA /* GrandTeton-256.jpg */,
+				610E7E2A160BEA5100D0BBAA /* GrandTeton-512.jpg */,
+				610E7E2B160BEA5100D0BBAA /* GrandTeton-768.jpg */,
+				610E7E2D160BEA5100D0BBAA /* OhioPyle-128.jpg */,
+				610E7E2E160BEA5100D0BBAA /* OhioPyle-256.jpg */,
+				610E7E2F160BEA5100D0BBAA /* OhioPyle-512.jpg */,
+				610E7E30160BEA5100D0BBAA /* OhioPyle-768.jpg */,
+				610E7E32160BEA5100D0BBAA /* SantaMonicaMountains-128.jpg */,
+				610E7E33160BEA5100D0BBAA /* SantaMonicaMountains-256.jpg */,
+				610E7E34160BEA5100D0BBAA /* SantaMonicaMountains-512.jpg */,
+				610E7E35160BEA5100D0BBAA /* SantaMonicaMountains-768.jpg */,
+				610E7E36160BEA5100D0BBAA /* spiral.jpg */,
+				610E7E37160BEA5100D0BBAA /* spiralex2.jpg */,
+			);
+			name = assign1;
+			sourceTree = "<group>";
+		};
+		610E7E38160BEA5100D0BBAA /* pic */ = {
+			isa = PBXGroup;
+			children = (
+				610E7E39160BEA5100D0BBAA /* adaptcm.c */,
+				610E7E3A160BEA5100D0BBAA /* adaptcm.h */,
+				610E7E3C160BEA5100D0BBAA /* jconfig.h */,
+				610E7E3D160BEA5100D0BBAA /* jerror.h */,
+				610E7E3E160BEA5100D0BBAA /* jmorecfg.h */,
+				610E7E3F160BEA5100D0BBAA /* jpeg.c */,
+				610E7E40160BEA5100D0BBAA /* jpeglib.h */,
+				610E7E41160BEA5100D0BBAA /* libjpeg.a */,
+				610E7E42160BEA5100D0BBAA /* Makefile */,
+				610E7E43160BEA5100D0BBAA /* pic.c */,
+				610E7E44160BEA5100D0BBAA /* pic.h */,
+			);
+			path = pic;
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 
@@ -116,7 +225,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				610E7E18160BE9B900D0BBAA /* main.c in Sources */,
+				610E7E4D160BEA5100D0BBAA /* assign1.cpp in Sources */,
+				610E7E50160BEA5100D0BBAA /* adaptcm.c in Sources */,
+				610E7E52160BEA5100D0BBAA /* jpeg.c in Sources */,
+				610E7E55160BEA5100D0BBAA /* pic.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,6 +285,10 @@
 		610E7E1E160BE9B900D0BBAA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/pic\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -180,6 +296,10 @@
 		610E7E1F160BE9B900D0BBAA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/pic\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -203,6 +323,7 @@
 				610E7E1F160BE9B900D0BBAA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

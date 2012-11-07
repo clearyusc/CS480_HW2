@@ -1,21 +1,62 @@
 /*
-  CSCI 480 Computer Graphics
-  Assignment 1: Height Fields
-  C++ starter code
-*/
+ CSCI 480
+ Assignment 2
+ */
 
+#include <stdio.h>
+#include <iostream.h>
 #include <stdlib.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #include <GLUT/glut.h>
+#include <math.h>
 #include "pic.h"
 
-int g_iMenuId;
+using namespace std;
+
+/* represents one control point along the spline */
+struct point {
+    double x;
+    double y;
+    double z;
+};
+
+struct vector {
+    double x;
+    double y;
+    double z;
+};
+
+
+vector B0,T0,N0;
+vector B1,T1,N1;
+vector P;
+
+vector crossProduct(vector a, vector b);
+vector unitVector(vector a);
+
+double catmullRomSplineFormula(double p0, double p1, double p2, double p3, double t);
+double derivativeOfCatmullRomSplineFormula(double p0, double p1, double p2, double p3, double t);
+
+
+/* spline struct which contains how many control points, and an array of control points */
+struct spline {
+    int numControlPoints;
+    struct point *points;
+};
+
+/* the spline array */
+struct spline *g_Splines;
+
+/* total number of splines */
+int g_iNumOfSplines;
 
 int g_vMousePos[2] = {0, 0};
 int g_iLeftMouseButton = 0;    /* 1 if pressed, 0 if not */
 int g_iMiddleMouseButton = 0;
 int g_iRightMouseButton = 0;
+//bool screenShotMode = false;
+//int screenShotCounter = 0;
 
 typedef enum { ROTATE, TRANSLATE, SCALE } CONTROLSTATE;
 
@@ -26,219 +67,392 @@ float g_vLandRotate[3] = {0.0, 0.0, 0.0};
 float g_vLandTranslate[3] = {0.0, 0.0, 0.0};
 float g_vLandScale[3] = {1.0, 1.0, 1.0};
 
-/* see <your pic directory>/pic.h for type Pic */
-Pic * g_pHeightData;
 
-/* Write a screenshot to the specified filename */
-void saveScreenshot (char *filename)
-{
-  int i, j;
-  Pic *in = NULL;
 
-  if (filename == NULL)
-    return;
-
-  /* Allocate a picture buffer */
-  in = pic_alloc(640, 480, 3, NULL);
-
-  printf("File to save to: %s\n", filename);
-
-  for (i=479; i>=0; i--) {
-    glReadPixels(0, 479-i, 640, 1, GL_RGB, GL_UNSIGNED_BYTE,
-                 &in->pix[i*in->nx*in->bpp]);
-  }
-
-  if (jpeg_write(filename, in))
-    printf("File saved Successfully\n");
-  else
-    printf("Error in Saving\n");
-
-  pic_free(in);
+int loadSplines(char *argv) {
+    char *cName = (char *)malloc(128 * sizeof(char));
+    FILE *fileList;
+    FILE *fileSpline;
+    int iType, i = 0, j, iLength;
+    
+    
+    /* load the track file */
+    fileList = fopen(argv, "r");
+    if (fileList == NULL) {
+        printf ("can't open file\n");
+        exit(1);
+    }
+    else {
+        //printf("Successfully opened the track file named %s.\n",argv);
+    }
+    
+    /* stores the number of splines in a global variable */
+    fscanf(fileList, "%d", &g_iNumOfSplines);
+    
+    g_Splines = (struct spline *)malloc(g_iNumOfSplines * sizeof(struct spline));
+    
+    /* reads through the spline files */
+    for (j = 0; j < g_iNumOfSplines; j++) {
+        i = 0;
+        fscanf(fileList, "%s", cName);
+        fileSpline = fopen(cName, "r");
+        
+        if (fileSpline == NULL) {
+            printf ("can't open file named %s \n",cName);
+            exit(1);
+        }
+        
+        /* gets length for spline file */
+        fscanf(fileSpline, "%d %d", &iLength, &iType);
+        
+        /* allocate memory for all the points */
+        g_Splines[j].points = (struct point *)malloc(iLength * sizeof(struct point));
+        g_Splines[j].numControlPoints = iLength;
+        
+        /* saves the data to the struct */
+        while (fscanf(fileSpline, "%lf %lf %lf", 
+                      &g_Splines[j].points[i].x, 
+                      &g_Splines[j].points[i].y, 
+                      &g_Splines[j].points[i].z) != EOF) {
+            i++;
+        }
+    }
+    
+    free(cName);
+    
+    return 0;
 }
 
-void myinit()
+void display() 
 {
-  /* setup gl view here */
-  glClearColor(0.0, 0.0, 0.0, 0.0);
+    glLoadIdentity();
+    ///           p        p+t       binormal
+    gluLookAt(0, 0, 20, 0, 0, 0, 0, 1, 0);
+    
+    //           p        p+t       binormal
+    //gluLookAt(P.x, P.y, P.z,    P.x + T1.x, P.y + T1.y, P.z + T1.z,    B1.x, B1.y, B1.z);
+
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+    glLineWidth(2.0); //test line width
+
+    
+    
+    glTranslatef(g_vLandTranslate[0]-.5, g_vLandTranslate[1]-.5, g_vLandTranslate[2]);  // the x,y, and z translation
+    
+    glScalef(g_vLandScale[0], g_vLandScale[1], g_vLandScale[2]);
+    
+    glRotatef(g_vLandRotate[0], 1, 0, 0); // g_vLandRotate returns a theta (angle) value
+    glRotatef(g_vLandRotate[1], 0, 1, 0);
+    glRotatef(g_vLandRotate[2], 0, 0, 1);
+
+
+    glBegin(GL_POINTS);
+    // Draw the catmull-rom spline curve of the roller coaster:
+    for (int t = 1; t < g_Splines[0].numControlPoints-2; t++)
+    {
+
+        for (double u = 0.0; u < 1.0; u+=0.01)
+        {
+            double p0x = g_Splines[0].points[t-1].x;
+            double p1x = g_Splines[0].points[t].x;
+            double p2x = g_Splines[0].points[t+1].x;
+            double p3x = g_Splines[0].points[t+2].x;
+            P.x = catmullRomSplineFormula(p0x,p1x,p2x,p3x,u);
+            
+            double p0y = g_Splines[0].points[t-1].y;
+            double p1y = g_Splines[0].points[t].y;
+            double p2y = g_Splines[0].points[t+1].y;
+            double p3y = g_Splines[0].points[t+2].y;
+            P.y = catmullRomSplineFormula(p0y,p1y,p2y,p3y,u);
+
+            double p0z = g_Splines[0].points[t-1].z;
+            double p1z = g_Splines[0].points[t].z;
+            double p2z = g_Splines[0].points[t+1].z;
+            double p3z = g_Splines[0].points[t+2].z;
+            P.z = catmullRomSplineFormula(p0z,p1z,p2z,p3z,u);
+
+            glColor3f(0.3, 0.8, 0.1); // a random color for now
+            glVertex3d(P.x, P.y, P.z); // px + nx, py + ny, pz+ nz fpr seoncd track
+                
+            if (t == 1)
+            {
+            vector V0; // Arbitrary Vector used to calculate the Binormal B
+            V0.x = 0;
+            V0.y = 1;
+            V0.z = 0;
+            
+            
+            // Tangent Vector
+            T0.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, u);
+            T0.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
+            T0.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
+            
+            
+            // Normal Vector 
+            N0 = unitVector(crossProduct(T0, V0));  // N0 = unit(T0xV0)
+            
+            
+            // Binormal Vector
+            B0 = unitVector(crossProduct(T0, N0)); // B0 = unit(T0xN0)
+            
+            
+            // Draw the second track
+            glColor3f(0.6, 0.2, 0.34); // a diff color to distinguish the 2nd track
+            glVertex3d(P.x+N0.x, P.y+N0.y, P.z+N0.z); // px + nx, py + ny, pz+ nz for second track
+            
+            }
+            else if (t > 1)  // calculating further NTB sets (after the initial one)
+            {
+                // Tangent Vector
+                T1.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, u);
+                T1.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
+                T1.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
+
+                N1 = unitVector(crossProduct(B0,T1)); // N1 = unit(B0xT0) (note: T0 is essentially T1)
+                
+                B1 = unitVector(crossProduct(T1, N1)); // B1 = unit(T1xN1)
+                
+                
+                // Draw the second track
+                glColor3f(0.6, 0.2, 0.34); // a diff color to distinguish the 2nd track
+                glVertex3d(P.x+N1.x, P.y+N1.y, P.z+N1.z); // px + nx, py + ny, pz + nz for second track
+                
+                // for the next iteration:
+                B0 = B1; // the current B is the soon-to-be old B
+                N0 = N1; //     ''      N          ''           N
+                T0 = T1; //     ''      T          ''           T
+             
+            }
+            
+        }
+        
+    }
+    glEnd();
+  
+
+    glutSwapBuffers();
 }
 
-void display()
-{
-  /* draw 1x1 cube about origin */
-  /* replace this code with your height field implementation */
-  /* you may also want to precede it with your 
-rotation/translation/scaling */
 
-  glBegin(GL_POLYGON);
+void reshapeFunction(int w, int h) {
+    // Set up the perspective:
+    glMatrixMode(GL_PROJECTION);
+  //  gluLookAt(0, 0, 0, (w/2), (h/2), 0, 0, 0, 0);
+    gluPerspective(90, (640/480), 0.1, 1000);
+    
+    glMatrixMode(GL_MODELVIEW); // not sure if I need this
+    glLoadIdentity();
 
-  glColor3f(1.0, 1.0, 1.0);
-  glVertex3f(-0.5, -0.5, 0.0);
-  glColor3f(0.0, 0.0, 1.0);
-  glVertex3f(-0.5, 0.5, 0.0);
-  glColor3f(0.0, 0.0, 0.0);
-  glVertex3f(0.5, 0.5, 0.0);
-  glColor3f(1.0, 1.0, 0.0);
-  glVertex3f(0.5, -0.5, 0.0);
-
-  glEnd();
 }
 
-void menufunc(int value)
-{
-  switch (value)
-  {
-    case 0:
-      exit(0);
-      break;
-  }
+/* This function simply implements the formula for a Catmull-Rom spline. 
+It takes either the x,y, or z values of 4 points of a curve and the value of t, 
+and it returns the double value Q(t). */
+double catmullRomSplineFormula(double p0, double p1, double p2, double p3, double t) {
+    return 0.5 *((2 * p1) 
+                     + (-p0 + p2) * t 
+                        + (2*p0 - 5*p1 + 4*p2 - p3) * pow(t,2) 
+                            + (-p0 + 3*p1 - 3*p2 + p3) * pow(t,3));
+    
 }
 
-void doIdle()
-{
-  /* do some stuff... */
+/* This function implements the derivative of a Catmull-Rom spline formula. 
+ It takes either the x,y, or z values of 4 points of a curve and the value of t, 
+ and it returns the double value Q'(t). */
+double derivativeOfCatmullRomSplineFormula(double p0, double p1, double p2, double p3, double t) {
+    return 0.5 *((-p0 + p2) 
+                 + 2*t*(2*p0 - 5*p1 + 4*p2 - p3) 
+                 + 3*pow(t,2)*(-p0 + 3*p1 - 3*p2 + p3));
+}
 
-  /* make the screen update */
-  glutPostRedisplay();
+/* Returns the cross product of the 2 vectors, a x b. */
+vector crossProduct(vector a, vector b) {
+    vector c;
+    
+    // c = a x b:
+    c.x = a.y*b.z - a.z*b.y;
+    c.y = -a.x*b.z + a.z*b.x;
+    c.z = a.x*b.y - a.y*b.x;
+     
+    
+    return c;
+}
+
+
+
+/* Returns the unit vector of vector a. */
+vector unitVector(vector a) {
+    double magnitude = sqrt(a.x*a.x + a.y*a.y + a.z*a.z); 
+    
+    a.x /= magnitude;
+    a.y /= magnitude;
+    a.z /= magnitude;
+    
+    return a;
 }
 
 /* converts mouse drags into information about 
-rotation/translation/scaling */
+ rotation/translation/scaling */
 void mousedrag(int x, int y)
 {
-  int vMouseDelta[2] = {x-g_vMousePos[0], y-g_vMousePos[1]};
-  
-  switch (g_ControlState)
-  {
-    case TRANSLATE:  
-      if (g_iLeftMouseButton)
-      {
-        g_vLandTranslate[0] += vMouseDelta[0]*0.01;
-        g_vLandTranslate[1] -= vMouseDelta[1]*0.01;
-      }
-      if (g_iMiddleMouseButton)
-      {
-        g_vLandTranslate[2] += vMouseDelta[1]*0.01;
-      }
-      break;
-    case ROTATE:
-      if (g_iLeftMouseButton)
-      {
-        g_vLandRotate[0] += vMouseDelta[1];
-        g_vLandRotate[1] += vMouseDelta[0];
-      }
-      if (g_iMiddleMouseButton)
-      {
-        g_vLandRotate[2] += vMouseDelta[1];
-      }
-      break;
-    case SCALE:
-      if (g_iLeftMouseButton)
-      {
-        g_vLandScale[0] *= 1.0+vMouseDelta[0]*0.01;
-        g_vLandScale[1] *= 1.0-vMouseDelta[1]*0.01;
-      }
-      if (g_iMiddleMouseButton)
-      {
-        g_vLandScale[2] *= 1.0-vMouseDelta[1]*0.01;
-      }
-      break;
-  }
-  g_vMousePos[0] = x;
-  g_vMousePos[1] = y;
+    int vMouseDelta[2] = {x-g_vMousePos[0], y-g_vMousePos[1]};
+    
+    switch (g_ControlState)
+    {
+        case TRANSLATE:  
+            if (g_iLeftMouseButton)
+            {
+                g_vLandTranslate[0] += vMouseDelta[0]*0.01;
+                g_vLandTranslate[1] -= vMouseDelta[1]*0.01;
+            }
+            if (g_iMiddleMouseButton)
+            {
+                g_vLandTranslate[2] += vMouseDelta[1]*0.01;
+            }
+            break;
+        case ROTATE:
+            if (g_iLeftMouseButton)
+            {
+                g_vLandRotate[0] += vMouseDelta[1];
+                g_vLandRotate[1] += vMouseDelta[0];
+            }
+            if (g_iMiddleMouseButton)
+            {
+                g_vLandRotate[2] += vMouseDelta[1];
+            }
+            break;
+        case SCALE:
+            if (g_iLeftMouseButton)
+            {
+                g_vLandScale[0] *= 1.0+vMouseDelta[0]*0.01;
+                g_vLandScale[1] *= 1.0-vMouseDelta[1]*0.01;
+            }
+            if (g_iMiddleMouseButton)
+            {
+                g_vLandScale[2] *= 1.0-vMouseDelta[1]*0.01;
+            }
+            break;
+    }
+    g_vMousePos[0] = x;
+    g_vMousePos[1] = y;
 }
 
 void mouseidle(int x, int y)
 {
-  g_vMousePos[0] = x;
-  g_vMousePos[1] = y;
+    g_vMousePos[0] = x;
+    g_vMousePos[1] = y;
 }
+
 
 void mousebutton(int button, int state, int x, int y)
 {
-
-  switch (button)
-  {
-    case GLUT_LEFT_BUTTON:
-      g_iLeftMouseButton = (state==GLUT_DOWN);
-      break;
-    case GLUT_MIDDLE_BUTTON:
-      g_iMiddleMouseButton = (state==GLUT_DOWN);
-      break;
-    case GLUT_RIGHT_BUTTON:
-      g_iRightMouseButton = (state==GLUT_DOWN);
-      break;
-  }
- 
-  switch(glutGetModifiers())
-  {
-    case GLUT_ACTIVE_CTRL:
-      g_ControlState = TRANSLATE;
-      break;
-    case GLUT_ACTIVE_SHIFT:
-      g_ControlState = SCALE;
-      break;
-    default:
-      g_ControlState = ROTATE;
-      break;
-  }
-
-  g_vMousePos[0] = x;
-  g_vMousePos[1] = y;
+    
+    switch (button)
+    {
+        case GLUT_LEFT_BUTTON:
+            g_iLeftMouseButton = (state==GLUT_DOWN);
+            break;
+        case GLUT_MIDDLE_BUTTON:
+            g_iMiddleMouseButton = (state==GLUT_DOWN);
+            break;
+        case GLUT_RIGHT_BUTTON:
+            g_iRightMouseButton = (state==GLUT_DOWN);
+            break;
+    }
+    
+    switch(glutGetModifiers())
+    {
+        case GLUT_ACTIVE_CTRL:
+            g_ControlState = TRANSLATE;
+            break;
+        case GLUT_ACTIVE_SHIFT:
+            g_ControlState = SCALE;
+            break;
+        default:
+            g_ControlState = ROTATE;
+            break;
+    }
+    
+    g_vMousePos[0] = x;
+    g_vMousePos[1] = y;
 }
+
+void doIdle()
+{
+    /* do some stuff... */
+    
+    /* make the screen update */
+    glutPostRedisplay();
+}
+
+
 
 int main (int argc, char ** argv)
 {
-  if (argc<2)
-  {  
-    printf ("usage: %s heightfield.jpg\n", argv[0]);
-    exit(1);
-  }
-
-  g_pHeightData = jpeg_read(argv[1], NULL);
-  if (!g_pHeightData)
-  {
-    printf ("error reading %s.\n", argv[1]);
-    exit(1);
-  }
-
-  glutInit(&argc,argv);
-  
-  /*
-    create a window here..should be double buffered and use depth testing
-  
-    the code past here will segfault if you don't have a window set up....
-    replace the exit once you add those calls.
-  */
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    if (argc<2)
+    {  
+        printf ("usage: %s <trackfile>\n", argv[0]);
+        exit(0);
+    }
     
-    /* set the initial window size */
-    glutInitWindowSize(256, 256);
+    loadSplines(argv[1]);
     
-    /* create the window and store the handle to it */
-   glutCreateWindow("Experiment with line drawing" /* title */ );
+    glutInit(&argc,argv);
+    
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowSize(640, 480);
+    glutCreateWindow("Assigment 2");
+    printf("NUMBER OF SPLINES = %i",g_iNumOfSplines);
+       
+    
+    // initialize some variables:
+    P.x = 0;
+    P.y = 0;
+    P.z = 0;
+    
+    T1.x = 0;
+    T1.y = 0;
+    T1.z = 0;
+    
+    B1.x = 0;
+    B1.y = 0;
+    B1.z = 0;
+    
+    
+    glutReshapeFunc(reshapeFunction);
+    
+    
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    
+    glutDisplayFunc(display);
+    
+    glutIdleFunc(doIdle);
+    
+    /* callback for mouse drags */
+    glutMotionFunc(mousedrag);
+    /* callback for idle mouse movement */
+    glutPassiveMotionFunc(mouseidle);
+    /* callback for mouse button changes */
+    glutMouseFunc(mousebutton);
 
-  /* tells glut to use a particular display function to redraw */
-  glutDisplayFunc(display);
-  
-  /* allow the user to quit using the right mouse button menu */
-  g_iMenuId = glutCreateMenu(menufunc);
-  glutSetMenu(g_iMenuId);
-  glutAddMenuEntry("Quit",0);
-  glutAttachMenu(GLUT_RIGHT_BUTTON);
-  
-  /* replace with any animate code */
-  glutIdleFunc(doIdle);
-
-  /* callback for mouse drags */
-  glutMotionFunc(mousedrag);
-  /* callback for idle mouse movement */
-  glutPassiveMotionFunc(mouseidle);
-  /* callback for mouse button changes */
-  glutMouseFunc(mousebutton);
-
-  /* do initialization */
-  myinit();
-
-  glutMainLoop();
-  return(0);
+    
+    glutMainLoop();
+    
+    return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,2 +1,2 @@
 1
-splines/circle.sp
+/Users/rcleary/Desktop/assign2_copied/assign1/splines/rollerCoaster.sp
