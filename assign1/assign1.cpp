@@ -58,6 +58,20 @@ vector B0,T0,N0;
 vector B1,T1,N1;
 vector P;
 
+// Animation Vectors and other Variables
+//vector AP,AT0,AT1,AB0,AB1,AN0,AN1;
+int check_to_animate_count = 0;
+int anim_counter = 0;
+#define kAnimCheckCountMax 500
+double anim_u = 0.0;
+
+// Animation Vector Arrays
+vector *AP,*AB,*AT;
+
+// Counters for these arrays
+int ac = 0;
+
+
 vector crossProduct(vector a, vector b);
 vector unitVector(vector a);
 vector vectorAdd(vector a, vector b);
@@ -156,11 +170,21 @@ void display()
 {
     glLoadIdentity();
     ///           p        p+t       binormal
-    gluLookAt(0, 0, 20, 0, 0, 0, 0, 1, 0);
+    //gluLookAt(0, 0, 20, 0, 0, 0, 0, 1, 0);
     
     //           p        p+t       binormal
-    //gluLookAt(P.x, P.y, P.z,    P.x + T1.x, P.y + T1.y, P.z + T1.z,    B1.x, B1.y, B1.z);
 
+    
+    gluLookAt(AP[anim_counter].x, AP[anim_counter].y, AP[anim_counter].z,    
+              AP[anim_counter].x + AT[anim_counter].x, AP[anim_counter].y + AT[anim_counter].y, AP[anim_counter].z + AT[anim_counter].z,   
+              AB[anim_counter].x, AB[anim_counter].y, AB[anim_counter].z);
+
+    
+    
+//    //           p        p+t       binormal
+//    gluLookAt(P.x, P.y, P.z,    P.x + T1.x, P.y + T1.y, P.z + T1.z,    B1.x, B1.y, B1.z);
+
+    
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
     glLineWidth(2.0); //test line width
@@ -179,7 +203,6 @@ void display()
     // Draw the catmull-rom spline curve of the roller coaster:
     for (int t = 1; t < g_Splines[0].numControlPoints-2; t++)
     {
-
         for (double u = 0.0; u < 1.0; u+=0.01)
         {
             double p0x = g_Splines[0].points[t-1].x;
@@ -200,9 +223,11 @@ void display()
             double p3z = g_Splines[0].points[t+2].z;
             P.z = catmullRomSplineFormula(p0z,p1z,p2z,p3z,u);
 
+            
             glColor3f(0.3, 0.8, 0.1); // a random color for now
             glVertex3d(P.x, P.y, P.z); // px + nx, py + ny, pz+ nz fpr seoncd track
                 
+            
             if (t == 1)
             {
             vector V0; // Arbitrary Vector used to calculate the Binormal B
@@ -236,11 +261,11 @@ void display()
                 T1.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, u);
                 T1.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
                 T1.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
-
+                
                 N1 = unitVector(crossProduct(B0,T1)); // N1 = unit(B0xT0) (note: T0 is essentially T1)
                 
                 B1 = unitVector(crossProduct(T1, N1)); // B1 = unit(T1xN1)
-                
+        
                 
                 // Draw the second track
                 glColor3f(0.6, 0.2, 0.34); // a different color to distinguish the 2nd track
@@ -521,7 +546,6 @@ void display()
             
             if (draw)
             {
-                cout<<"a"<<endl;
                 // left face of the cross-bar
                 glColor3f(0.5, 0.5, 0.5);
                 glBegin(GL_QUADS);
@@ -569,7 +593,6 @@ void display()
                 
                 if (draw)
                 {
-                    cout<<"b"<<endl;
                     // right face of the cross-bar
                     glBegin(GL_QUADS);
                     drawVector(v7);
@@ -623,7 +646,6 @@ void display()
                 
                 if (draw)
                 {
-                    cout<<"c"<<endl;
                     // right face of the cross-bar
                     glBegin(GL_QUADS);
                     drawVector(v7);
@@ -652,7 +674,6 @@ void display()
         
             if (draw)
             {
-                cout<<"d"<<endl;
                 // top face of cross-bar
                 glColor3f(0.3, 0.33, 0.71);
                 glBegin(GL_QUADS);
@@ -868,12 +889,97 @@ void mousebutton(int button, int state, int x, int y)
     g_vMousePos[1] = y;
 }
 
-void doIdle()
+void animate()
 {
-    /* do some stuff... */
     
-    /* make the screen update */
-    glutPostRedisplay();
+    if(check_to_animate_count++ == kAnimCheckCountMax)
+    {
+        check_to_animate_count = 0;
+
+        anim_counter++;
+        
+        /* make the screen update */
+        glutPostRedisplay();
+    }
+   
+    
+//    glLoadIdentity();
+//    gluLookAt(AP[i].x, AP[i].y, AP[i].z,    
+//              AP[i].x + AT[i].x, AP[i].y + AT[i].y, AP[i].z + AT[i].z,   
+//              AB[i].x, AB[i].y, AB[i].z);
+//
+    
+    
+    /* update the animation variables */
+    /*
+    if(anim_t++ >= g_Splines[0].numControlPoints-2)
+        anim_t = 0;
+    
+    anim_u += 0.001;
+    if (anim_u > 1.0)
+        anim_u = 0.0;
+    
+    double p0x = g_Splines[0].points[anim_t-1].x;
+    double p1x = g_Splines[0].points[anim_t].x;
+    double p2x = g_Splines[0].points[anim_t+1].x;
+    double p3x = g_Splines[0].points[anim_t+2].x;
+    AP.x = catmullRomSplineFormula(p0x,p1x,p2x,p3x,anim_u);
+    
+    double p0y = g_Splines[0].points[anim_t-1].y;
+    double p1y = g_Splines[0].points[anim_t].y;
+    double p2y = g_Splines[0].points[anim_t+1].y;
+    double p3y = g_Splines[0].points[anim_t+2].y;
+    AP.y = catmullRomSplineFormula(p0y,p1y,p2y,p3y,anim_u);
+    
+    double p0z = g_Splines[0].points[anim_t-1].z;
+    double p1z = g_Splines[0].points[anim_t].z;
+    double p2z = g_Splines[0].points[anim_t+1].z;
+    double p3z = g_Splines[0].points[anim_t+2].z;
+    AP.z = catmullRomSplineFormula(p0z,p1z,p2z,p3z,anim_u);
+
+    
+    if (anim_t == 1)
+    {
+        vector V0; // Arbitrary Vector used to calculate the Binormal AB0
+        V0.x = 0;
+        V0.y = 1;
+        V0.z = 0;
+        
+        
+        // Tangent Vector
+        AT0.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, anim_u);
+        AT0.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, anim_u);
+        AT0.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, anim_u);
+        
+        
+        // Normal Vector 
+        AN0 = unitVector(crossProduct(AT0, V0));  // AN0 = unit(AT0xV0)
+        
+        
+        // Binormal Vector
+        AB0 = unitVector(crossProduct(AT0, AN0)); // AB0 = unit(AT0xN0)
+    }
+    else if (anim_t > 1)  // calculating further NTB sets (after the initial one)
+    {
+        // Tangent Vector
+        AT1.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, anim_u);
+        AT1.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, anim_u);
+        AT1.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, anim_u);
+        
+        AN1 = unitVector(crossProduct(AB0,AT1)); // AN1 = unit(AB0xAT0) (note: AT0 is essentially AT1)
+        
+        AB1 = unitVector(crossProduct(AT1, AN1)); // AB1 = unit(AT1xAN1)
+        
+        // for the next iteration:
+        AB0 = AB1; // the current B is the soon-to-be old B
+        AN0 = AN1; //     ''      N          ''           N
+        AT0 = AT1; //     ''      T          ''           T
+        
+    }
+*/
+    
+    // Try just looping through an array of vectors
+    
 }
 
 
@@ -909,6 +1015,94 @@ int main (int argc, char ** argv)
     B1.y = 0;
     B1.z = 0;
     
+    // Animation Vector Arrays dynamic allocation (we add a factor of 10 just to be safe)
+    AP = new vector[g_Splines[0].numControlPoints * 1000];
+    AB = new vector[g_Splines[0].numControlPoints * 1000];
+    AT = new vector[g_Splines[0].numControlPoints * 1000];
+
+    
+    // Bring in the data for the animation array
+    for (int t = 1; t < g_Splines[0].numControlPoints-2; t++)
+    {
+        for (double u = 0.0; u < 1.0; u+=0.01)
+        {
+            double p0x = g_Splines[0].points[t-1].x;
+            double p1x = g_Splines[0].points[t].x;
+            double p2x = g_Splines[0].points[t+1].x;
+            double p3x = g_Splines[0].points[t+2].x;
+            P.x = catmullRomSplineFormula(p0x,p1x,p2x,p3x,u);
+            
+            double p0y = g_Splines[0].points[t-1].y;
+            double p1y = g_Splines[0].points[t].y;
+            double p2y = g_Splines[0].points[t+1].y;
+            double p3y = g_Splines[0].points[t+2].y;
+            P.y = catmullRomSplineFormula(p0y,p1y,p2y,p3y,u);
+            
+            double p0z = g_Splines[0].points[t-1].z;
+            double p1z = g_Splines[0].points[t].z;
+            double p2z = g_Splines[0].points[t+1].z;
+            double p3z = g_Splines[0].points[t+2].z;
+            P.z = catmullRomSplineFormula(p0z,p1z,p2z,p3z,u);
+            
+            AP[ac] = P; // load into the animation array
+
+            if (t == 1)
+            {
+                vector V0; // Arbitrary Vector used to calculate the Binormal B
+                V0.x = 0;
+                V0.y = 1;
+                V0.z = 0;
+                
+                
+                // Tangent Vector
+                T0.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, u);
+                T0.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
+                T0.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
+                
+                
+                // Normal Vector 
+                N0 = unitVector(crossProduct(T0, V0));  // N0 = unit(T0xV0)
+                
+                
+                // Binormal Vector
+                B0 = unitVector(crossProduct(T0, N0)); // B0 = unit(T0xN0)
+                
+                // Load the animation arrays
+                AT[ac] = T0;
+                AB[ac] = B0;    
+                
+            }
+            else if (t > 1)  // calculating further NTB sets (after the initial one)
+            {
+                // Tangent Vector
+                T1.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, u);
+                T1.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
+                T1.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
+                
+                N1 = unitVector(crossProduct(B0,T1)); // N1 = unit(B0xT0) (note: T0 is essentially T1)
+                
+                B1 = unitVector(crossProduct(T1, N1)); // B1 = unit(T1xN1)
+                
+                
+                // Load the animation arrays
+                AT[ac] = T1;
+                AB[ac] = B1;                
+                
+                // for the next iteration:
+                B0 = B1; // the current B is the soon-to-be old B
+                N0 = N1; //     ''      N          ''           N
+                T0 = T1; //     ''      T          ''           T
+                
+            }
+        
+            ac++; // increment the animation array counter
+        }
+    }
+    
+    
+    
+    
+    
     
     glutReshapeFunc(reshapeFunction);
     
@@ -917,7 +1111,7 @@ int main (int argc, char ** argv)
     
     glutDisplayFunc(display);
     
-    glutIdleFunc(doIdle);
+    glutIdleFunc(animate);
     
     /* callback for mouse drags */
     glutMotionFunc(mousedrag);
