@@ -466,7 +466,7 @@ void display()
    // glEnd();
     
     
-    
+    vector v0,v1,v2,v3,v4,v5,v6,v7;
     
     
     double s = 0.1;
@@ -503,13 +503,18 @@ void display()
 //            B0.y *= s;
 //            B0.z *= s;
 //            
+            v0 = P;
+            v1 = P+T0;
+            v2 = P+T0+B0;
+            v3 = P+B0;
+            
+            // left face of the cross-bar
             glBegin(GL_QUADS);
-            glVertex3d(P.x+B0.x, P.y+B0.y, P.z+B0.z); // v3
-            glVertex3d(P.x+T0.x+B0.x, P.y+T0.y+B0.y, P.z+T0.z+B0.z); // v2
-            glVertex3d(P.x+T0.x, P.y+T0.y, P.z+T0.z);  // v1
-            glVertex3d(P.x, P.y, P.z);  // v0
+            drawVector(v2);
+            drawVector(v3);
+            drawVector(v0);
+            drawVector(v1);
             glEnd();
-
             
             if (t == 1)
             {
@@ -540,15 +545,35 @@ void display()
                 B0.y *= s;
                 B0.z *= s;
                 
-                
-                // Draw the second track
-                glColor3f(0.5, 0.5, 0.5); 
                 glBegin(GL_QUADS);
-                glVertex3d(P.x+N0.x, P.y+N0.y, P.z+N0.z); // v4
-                glVertex3d(P.x+T0.x+N0.x, P.y+T0.y+N0.y, P.z+T0.z+N0.z); // v5
-                glVertex3d(P.x+T0.x+B0.x+N0.x, P.y+T0.y+B0.y+N0.y, P.z+T0.z+B0.z+N0.z); // v6
-                glVertex3d(P.x+B0.x+N0.x, P.y+B0.y+N0.y, P.z+B0.z+N0.z); // v7
+                v4 = P+N0;
+                v5 = P+T0+N0;
+                v6 = P+T0+B0+N0;
+                v7 = P+B0+N0;
                 glEnd();
+                
+                // right face of the cross-bar
+                drawVector(v7);
+                drawVector(v6);
+                drawVector(v5);
+                drawVector(v4);
+
+                glColor3f(0.5, 0.5, 0.5); 
+                
+                
+//                glBegin(GL_QUADS);
+//                glVertex3d(P.x+B0.x, P.y+B0.y, P.z+B0.z); // v3
+//                glVertex3d(P.x+T0.x+B0.x, P.y+T0.y+B0.y, P.z+T0.z+B0.z); // v2
+//                glVertex3d(P.x+T0.x, P.y+T0.y, P.z+T0.z);  // v1
+//                glVertex3d(P.x, P.y, P.z);  // v0
+//                glEnd();
+//                
+//                glBegin(GL_QUADS);
+//                glVertex3d(P.x+N0.x, P.y+N0.y, P.z+N0.z); // v4
+//                glVertex3d(P.x+T0.x+N0.x, P.y+T0.y+N0.y, P.z+T0.z+N0.z); // v5
+//                glVertex3d(P.x+T0.x+B0.x+N0.x, P.y+T0.y+B0.y+N0.y, P.z+T0.z+B0.z+N0.z); // v6
+//                glVertex3d(P.x+B0.x+N0.x, P.y+B0.y+N0.y, P.z+B0.z+N0.z); // v7
+//                glEnd();
                 
             }
             else if (t > 1)  // calculating further NTB sets (after the initial one)
@@ -571,15 +596,28 @@ void display()
                 B1.y *= s;
                 B1.z *= s;
                 
+                v4 = P+N1;
+                v5 = P+T0+N1;
+                v6 = P+T0+B0+N1;
+                v7 = P+B0+N1;
+                
+                // right face of the cross-bar
+                glBegin(GL_QUADS);
+                drawVector(v7);
+                drawVector(v6);
+                drawVector(v5);
+                drawVector(v4);
+                glEnd();
+
                 
                 // Draw the second track
-                glColor3f(0.5, 0.5, 0.5);
-                glBegin(GL_QUADS);
-                glVertex3d(P.x+N1.x, P.y+N1.y, P.z+N1.z); // v4
-                glVertex3d(P.x+T0.x+N1.x, P.y+T0.y+N1.y, P.z+T0.z+N1.z); // v5
-                glVertex3d(P.x+T0.x+B0.x+N1.x, P.y+T0.y+B0.y+N1.y, P.z+T0.z+B0.z+N1.z); // v6
-                glVertex3d(P.x+B0.x+N1.x, P.y+B0.y+N1.y, P.z+B0.z+N1.z); // v7
-                glEnd();
+//                glColor3f(0.5, 0.5, 0.5);
+//                glBegin(GL_QUADS);
+//                glVertex3d(P.x+N1.x, P.y+N1.y, P.z+N1.z); // v4
+//                glVertex3d(P.x+T0.x+N1.x, P.y+T0.y+N1.y, P.z+T0.z+N1.z); // v5
+//                glVertex3d(P.x+T0.x+B0.x+N1.x, P.y+T0.y+B0.y+N1.y, P.z+T0.z+B0.z+N1.z); // v6
+//                glVertex3d(P.x+B0.x+N1.x, P.y+B0.y+N1.y, P.z+B0.z+N1.z); // v7
+//                glEnd();
                 
                 // for the next iteration:
                 B0 = B1; // the current B is the soon-to-be old B
@@ -587,6 +625,16 @@ void display()
                 T0 = T1; //     ''      T          ''           T
                 
             }
+        
+            // top face of cross-bar
+            glColor3f(0.3, 0.33, 0.71);
+            glBegin(GL_QUADS);
+            drawVector(v2);
+            drawVector(v6);
+            drawVector(v7);
+            drawVector(v3);
+            glEnd();
+            
         }
     }
     glEnd();
