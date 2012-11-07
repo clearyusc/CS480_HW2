@@ -34,6 +34,7 @@ vector P;
 
 vector crossProduct(vector a, vector b);
 vector unitVector(vector a);
+vector vectorAdd(vector a, vector b);
 
 double catmullRomSplineFormula(double p0, double p1, double p2, double p3, double t);
 double derivativeOfCatmullRomSplineFormula(double p0, double p1, double p2, double p3, double t);
@@ -137,7 +138,6 @@ void display()
     glLineWidth(2.0); //test line width
 
     
-    
     glTranslatef(g_vLandTranslate[0]-.5, g_vLandTranslate[1]-.5, g_vLandTranslate[2]);  // the x,y, and z translation
     
     glScalef(g_vLandScale[0], g_vLandScale[1], g_vLandScale[2]);
@@ -215,8 +215,9 @@ void display()
                 
                 
                 // Draw the second track
-                glColor3f(0.6, 0.2, 0.34); // a diff color to distinguish the 2nd track
+                glColor3f(0.6, 0.2, 0.34); // a different color to distinguish the 2nd track
                 glVertex3d(P.x+N1.x, P.y+N1.y, P.z+N1.z); // px + nx, py + ny, pz + nz for second track
+                
                 
                 // for the next iteration:
                 B0 = B1; // the current B is the soon-to-be old B
@@ -224,15 +225,113 @@ void display()
                 T0 = T1; //     ''      T          ''           T
              
             }
-            
         }
         
     }
     glEnd();
   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    // DRAW THE TRACK CROSS-BARS:
+    glBegin(GL_LINES);
+    for (int t = 1; t < g_Splines[0].numControlPoints-2; t++)
+    {
+        
+        for (double u = 0.0; u < 1.0; u+=0.2)
+        {
+            double p0x = g_Splines[0].points[t-1].x;
+            double p1x = g_Splines[0].points[t].x;
+            double p2x = g_Splines[0].points[t+1].x;
+            double p3x = g_Splines[0].points[t+2].x;
+            P.x = catmullRomSplineFormula(p0x,p1x,p2x,p3x,u);
+            
+            double p0y = g_Splines[0].points[t-1].y;
+            double p1y = g_Splines[0].points[t].y;
+            double p2y = g_Splines[0].points[t+1].y;
+            double p3y = g_Splines[0].points[t+2].y;
+            P.y = catmullRomSplineFormula(p0y,p1y,p2y,p3y,u);
+            
+            double p0z = g_Splines[0].points[t-1].z;
+            double p1z = g_Splines[0].points[t].z;
+            double p2z = g_Splines[0].points[t+1].z;
+            double p3z = g_Splines[0].points[t+2].z;
+            P.z = catmullRomSplineFormula(p0z,p1z,p2z,p3z,u);
+            
+            glColor3f(0.5, 0.5, 0.5);
+            glVertex3d(P.x, P.y, P.z); // px + nx, py + ny, pz+ nz fpr seoncd track
+            
+            if (t == 1)
+            {
+                vector V0; // Arbitrary Vector used to calculate the Binormal B
+                V0.x = 0;
+                V0.y = 1;
+                V0.z = 0;
+                
+                
+                // Tangent Vector
+                T0.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, u);
+                T0.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
+                T0.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
+                
+                
+                // Normal Vector 
+                N0 = unitVector(crossProduct(T0, V0));  // N0 = unit(T0xV0)
+                
+                
+                // Binormal Vector
+                B0 = unitVector(crossProduct(T0, N0)); // B0 = unit(T0xN0)
+                
+                
+                // Draw the second track
+                glColor3f(0.5, 0.5, 0.5); 
+                glVertex3d(P.x+N0.x, P.y+N0.y, P.z+N0.z); // px + nx, py + ny, pz+ nz for second track
+                
+            }
+            else if (t > 1)  // calculating further NTB sets (after the initial one)
+            {
+                // Tangent Vector
+                T1.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, u);
+                T1.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
+                T1.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
+                
+                N1 = unitVector(crossProduct(B0,T1)); // N1 = unit(B0xT0) (note: T0 is essentially T1)
+                
+                B1 = unitVector(crossProduct(T1, N1)); // B1 = unit(T1xN1)
+                
+                
+                // Draw the second track
+                glColor3f(0.5, 0.5, 0.5); 
+                glVertex3d(P.x+N1.x, P.y+N1.y, P.z+N1.z); // px + nx, py + ny, pz + nz for second track
+                
+                
+                // for the next iteration:
+                B0 = B1; // the current B is the soon-to-be old B
+                N0 = N1; //     ''      N          ''           N
+                T0 = T1; //     ''      T          ''           T
+                
+            }
+        }
+        
+    }
+    glEnd();
 
+    
+    
+    
+    
     glutSwapBuffers();
 }
+
 
 
 void reshapeFunction(int w, int h) {
@@ -279,6 +378,17 @@ vector crossProduct(vector a, vector b) {
     return c;
 }
 
+
+/* Performs vector addition. Returns vector c = vector a + vector b. */
+vector vectorAdd(vector a, vector b)
+{
+    vector c;
+    c.x = a.x + b.x;
+    c.y = a.y + b.y;
+    c.z = a.z + b.z;
+    
+    return c;
+}
 
 
 /* Returns the unit vector of vector a. */
