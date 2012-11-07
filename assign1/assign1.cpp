@@ -241,13 +241,11 @@ void display()
     
     
     
-    
-    // DRAW THE TRACK CROSS-BARS:
-    glBegin(GL_LINES);
+    double s = 0.1;
+    // FLAT TRACK SIDES:
     for (int t = 1; t < g_Splines[0].numControlPoints-2; t++)
     {
-        
-        for (double u = 0.0; u < 1.0; u+=0.2)
+        for (double u = 0.0; u < 1.0; u+=0.01)
         {
             double p0x = g_Splines[0].points[t-1].x;
             double p1x = g_Splines[0].points[t].x;
@@ -268,7 +266,22 @@ void display()
             P.z = catmullRomSplineFormula(p0z,p1z,p2z,p3z,u);
             
             glColor3f(0.5, 0.5, 0.5);
-            glVertex3d(P.x, P.y, P.z); // px + nx, py + ny, pz+ nz fpr seoncd track
+//            // scale the B and T vectors
+//            T0.x *= s;
+//            T0.y *= s;
+//            T0.z *= s;
+//            
+//            B0.x *= s;
+//            B0.y *= s;
+//            B0.z *= s;
+//            
+            glBegin(GL_QUADS);
+            glVertex3d(P.x+B0.x, P.y+B0.y, P.z+B0.z); // v3
+            glVertex3d(P.x+T0.x+B0.x, P.y+T0.y+B0.y, P.z+T0.z+B0.z); // v2
+            glVertex3d(P.x+T0.x, P.y+T0.y, P.z+T0.z);  // v1
+            glVertex3d(P.x, P.y, P.z);  // v0
+            glEnd();
+
             
             if (t == 1)
             {
@@ -283,6 +296,10 @@ void display()
                 T0.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
                 T0.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
                 
+                T0.x *= s;
+                T0.y *= s;
+                T0.z *= s;
+                
                 
                 // Normal Vector 
                 N0 = unitVector(crossProduct(T0, V0));  // N0 = unit(T0xV0)
@@ -291,10 +308,19 @@ void display()
                 // Binormal Vector
                 B0 = unitVector(crossProduct(T0, N0)); // B0 = unit(T0xN0)
                 
+                B0.x *= s;
+                B0.y *= s;
+                B0.z *= s;
+                
                 
                 // Draw the second track
                 glColor3f(0.5, 0.5, 0.5); 
-                glVertex3d(P.x+N0.x, P.y+N0.y, P.z+N0.z); // px + nx, py + ny, pz+ nz for second track
+                glBegin(GL_QUADS);
+                glVertex3d(P.x+N0.x, P.y+N0.y, P.z+N0.z); // v4
+                glVertex3d(P.x+T0.x+N0.x, P.y+T0.y+N0.y, P.z+T0.z+N0.z); // v5
+                glVertex3d(P.x+T0.x+B0.x+N0.x, P.y+T0.y+B0.y+N0.y, P.z+T0.z+B0.z+N0.z); // v6
+                glVertex3d(P.x+B0.x+N0.x, P.y+B0.y+N0.y, P.z+B0.z+N0.z); // v7
+                glEnd();
                 
             }
             else if (t > 1)  // calculating further NTB sets (after the initial one)
@@ -304,15 +330,28 @@ void display()
                 T1.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
                 T1.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
                 
+                T1.x *= s;
+                T1.y *= s;
+                T1.z *= s;
+
+                
                 N1 = unitVector(crossProduct(B0,T1)); // N1 = unit(B0xT0) (note: T0 is essentially T1)
                 
                 B1 = unitVector(crossProduct(T1, N1)); // B1 = unit(T1xN1)
                 
+                B1.x *= s;
+                B1.y *= s;
+                B1.z *= s;
+                
                 
                 // Draw the second track
-                glColor3f(0.5, 0.5, 0.5); 
-                glVertex3d(P.x+N1.x, P.y+N1.y, P.z+N1.z); // px + nx, py + ny, pz + nz for second track
-                
+                glColor3f(0.5, 0.5, 0.5);
+                glBegin(GL_QUADS);
+                glVertex3d(P.x+N1.x, P.y+N1.y, P.z+N1.z); // v4
+                glVertex3d(P.x+T0.x+N1.x, P.y+T0.y+N1.y, P.z+T0.z+N1.z); // v5
+                glVertex3d(P.x+T0.x+B0.x+N1.x, P.y+T0.y+B0.y+N1.y, P.z+T0.z+B0.z+N1.z); // v6
+                glVertex3d(P.x+B0.x+N1.x, P.y+B0.y+N1.y, P.z+B0.z+N1.z); // v7
+                glEnd();
                 
                 // for the next iteration:
                 B0 = B1; // the current B is the soon-to-be old B
@@ -321,13 +360,9 @@ void display()
                 
             }
         }
-        
     }
     glEnd();
 
-    
-    
-    
     
     glutSwapBuffers();
 }
