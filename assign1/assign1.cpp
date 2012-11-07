@@ -469,12 +469,24 @@ void display()
     vector v0,v1,v2,v3,v4,v5,v6,v7;
     
     
-    double s = 0.1;
+    double s = 0.005;
+    int counter = 0;
+    bool draw = false;
+
     // FLAT TRACK SIDES:
     for (int t = 1; t < g_Splines[0].numControlPoints-2; t++)
     {
+        draw = false;
+#define kNumLoopSkipsTrackCrossbars 10
         for (double u = 0.0; u < 1.0; u+=0.01)
         {
+            counter++;
+            draw = false;
+            if (counter == kNumLoopSkipsTrackCrossbars)
+            {
+                draw = true;
+                counter = 0;
+            }
             double p0x = g_Splines[0].points[t-1].x;
             double p1x = g_Splines[0].points[t].x;
             double p2x = g_Splines[0].points[t+1].x;
@@ -493,7 +505,6 @@ void display()
             double p3z = g_Splines[0].points[t+2].z;
             P.z = catmullRomSplineFormula(p0z,p1z,p2z,p3z,u);
             
-            glColor3f(0.5, 0.5, 0.5);
 //            // scale the B and T vectors
 //            T0.x *= s;
 //            T0.y *= s;
@@ -502,20 +513,25 @@ void display()
 //            B0.x *= s;
 //            B0.y *= s;
 //            B0.z *= s;
-//            
+            
             v0 = P;
             v1 = P+T0;
             v2 = P+T0+B0;
             v3 = P+B0;
             
-            // left face of the cross-bar
-            glBegin(GL_QUADS);
-            drawVector(v2);
-            drawVector(v3);
-            drawVector(v0);
-            drawVector(v1);
-            glEnd();
-            
+            if (draw)
+            {
+                cout<<"a"<<endl;
+                // left face of the cross-bar
+                glColor3f(0.5, 0.5, 0.5);
+                glBegin(GL_QUADS);
+                drawVector(v2);
+                drawVector(v3);
+                drawVector(v0);
+                drawVector(v1);
+                glEnd();
+            }
+
             if (t == 1)
             {
                 vector V0; // Arbitrary Vector used to calculate the Binormal B
@@ -545,20 +561,24 @@ void display()
                 B0.y *= s;
                 B0.z *= s;
                 
-                glBegin(GL_QUADS);
+                
                 v4 = P+N0;
                 v5 = P+T0+N0;
                 v6 = P+T0+B0+N0;
                 v7 = P+B0+N0;
-                glEnd();
                 
-                // right face of the cross-bar
-                drawVector(v7);
-                drawVector(v6);
-                drawVector(v5);
-                drawVector(v4);
+                if (draw)
+                {
+                    cout<<"b"<<endl;
+                    // right face of the cross-bar
+                    glBegin(GL_QUADS);
+                    drawVector(v7);
+                    drawVector(v6);
+                    drawVector(v5);
+                    drawVector(v4);
+                    glEnd();
+                }
 
-                glColor3f(0.5, 0.5, 0.5); 
                 
                 
 //                glBegin(GL_QUADS);
@@ -601,13 +621,17 @@ void display()
                 v6 = P+T0+B0+N1;
                 v7 = P+B0+N1;
                 
-                // right face of the cross-bar
-                glBegin(GL_QUADS);
-                drawVector(v7);
-                drawVector(v6);
-                drawVector(v5);
-                drawVector(v4);
-                glEnd();
+                if (draw)
+                {
+                    cout<<"c"<<endl;
+                    // right face of the cross-bar
+                    glBegin(GL_QUADS);
+                    drawVector(v7);
+                    drawVector(v6);
+                    drawVector(v5);
+                    drawVector(v4);
+                    glEnd();
+                }
 
                 
                 // Draw the second track
@@ -626,15 +650,45 @@ void display()
                 
             }
         
-            // top face of cross-bar
-            glColor3f(0.3, 0.33, 0.71);
-            glBegin(GL_QUADS);
-            drawVector(v2);
-            drawVector(v6);
-            drawVector(v7);
-            drawVector(v3);
-            glEnd();
-            
+            if (draw)
+            {
+                cout<<"d"<<endl;
+                // top face of cross-bar
+                glColor3f(0.3, 0.33, 0.71);
+                glBegin(GL_QUADS);
+                drawVector(v2);
+                drawVector(v6);
+                drawVector(v7);
+                drawVector(v3);
+                glEnd();
+                
+                // front face of cross-bar
+                glColor3f(0.3, 0.30, 0.65);
+                glBegin(GL_QUADS);
+                drawVector(v3);
+                drawVector(v7);
+                drawVector(v4);
+                drawVector(v0);
+                glEnd();
+                
+                // back face of cross-bar
+                glColor3f(0.3, 0.23, 0.71);
+                glBegin(GL_QUADS);
+                drawVector(v6);
+                drawVector(v2);
+                drawVector(v1);
+                drawVector(v5);
+                glEnd();
+                
+                // bottom face of cross-bar
+                glColor3f(0.1, 0.13, 0.71);
+                glBegin(GL_QUADS);
+                drawVector(v4);
+                drawVector(v5);
+                drawVector(v1);
+                drawVector(v0);
+                glEnd();
+            }
         }
     }
     glEnd();
