@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5B8C2F4F164B5C4A005592F9 /* RgbImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B8C2F4A164B5C4A005592F9 /* RgbImage.cpp */; };
+		5B8C2F50164B5C4A005592F9 /* TextureBMP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B8C2F4C164B5C4A005592F9 /* TextureBMP.cpp */; };
 		610E7E21160BE9C900D0BBAA /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 610E7E20160BE9C900D0BBAA /* GLUT.framework */; };
 		610E7E23160BE9D700D0BBAA /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 610E7E22160BE9D700D0BBAA /* OpenGL.framework */; };
 		610E7E4D160BEA5100D0BBAA /* assign1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 610E7E26160BEA5100D0BBAA /* assign1.cpp */; };
@@ -42,6 +44,15 @@
 		5B566BA1163901D200891163 /* yaxis.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yaxis.sp; sourceTree = "<group>"; };
 		5B566BA2163901D200891163 /* zaxis.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = zaxis.sp; sourceTree = "<group>"; };
 		5B566BA41639032300891163 /* track.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = track.txt; sourceTree = "<group>"; };
+		5B8C2F4A164B5C4A005592F9 /* RgbImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RgbImage.cpp; sourceTree = "<group>"; };
+		5B8C2F4B164B5C4A005592F9 /* RgbImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RgbImage.h; sourceTree = "<group>"; };
+		5B8C2F4C164B5C4A005592F9 /* TextureBMP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextureBMP.cpp; sourceTree = "<group>"; };
+		5B8C2F4D164B5C4A005592F9 /* TextureBMP.exe */ = {isa = PBXFileReference; lastKnownFileType = file; path = TextureBMP.exe; sourceTree = "<group>"; };
+		5B8C2F4E164B5C4A005592F9 /* TextureBMP.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = TextureBMP.html; sourceTree = "<group>"; };
+		5B8C2F57164B734F005592F9 /* woodplank.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = woodplank.png; sourceTree = "<group>"; };
+		5B8C2F58164B753F005592F9 /* RedLeavesTexture.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = RedLeavesTexture.bmp; sourceTree = "<group>"; };
+		5B8C2F5D164B789B005592F9 /* woodplanks1.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = woodplanks1.jpeg; sourceTree = "<group>"; };
+		5B8C2F5E164B7AA5005592F9 /* woodplanks2.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = woodplanks2.jpeg; sourceTree = "<group>"; };
 		610E7E13160BE9B900D0BBAA /* assign1 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = assign1; sourceTree = BUILT_PRODUCTS_DIR; };
 		610E7E20160BE9C900D0BBAA /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		610E7E22160BE9D700D0BBAA /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -106,6 +117,19 @@
 			path = splines;
 			sourceTree = "<group>";
 		};
+		5B8C2F48164B5C4A005592F9 /* TextureBMP */ = {
+			isa = PBXGroup;
+			children = (
+				5B8C2F58164B753F005592F9 /* RedLeavesTexture.bmp */,
+				5B8C2F4A164B5C4A005592F9 /* RgbImage.cpp */,
+				5B8C2F4B164B5C4A005592F9 /* RgbImage.h */,
+				5B8C2F4C164B5C4A005592F9 /* TextureBMP.cpp */,
+				5B8C2F4D164B5C4A005592F9 /* TextureBMP.exe */,
+				5B8C2F4E164B5C4A005592F9 /* TextureBMP.html */,
+			);
+			path = TextureBMP;
+			sourceTree = "<group>";
+		};
 		610E7E08160BE9B900D0BBAA = {
 			isa = PBXGroup;
 			children = (
@@ -139,6 +163,10 @@
 			children = (
 				5B566BA41639032300891163 /* track.txt */,
 				610E7E26160BEA5100D0BBAA /* assign1.cpp */,
+				5B8C2F5E164B7AA5005592F9 /* woodplanks2.jpeg */,
+				5B8C2F5D164B789B005592F9 /* woodplanks1.jpeg */,
+				5B8C2F57164B734F005592F9 /* woodplank.png */,
+				5B8C2F48164B5C4A005592F9 /* TextureBMP */,
 				610E7E28160BEA5100D0BBAA /* GrandTeton-128.jpg */,
 				610E7E29160BEA5100D0BBAA /* GrandTeton-256.jpg */,
 				610E7E2A160BEA5100D0BBAA /* GrandTeton-512.jpg */,
@@ -229,6 +257,8 @@
 				610E7E50160BEA5100D0BBAA /* adaptcm.c in Sources */,
 				610E7E52160BEA5100D0BBAA /* jpeg.c in Sources */,
 				610E7E55160BEA5100D0BBAA /* pic.c in Sources */,
+				5B8C2F4F164B5C4A005592F9 /* RgbImage.cpp in Sources */,
+				5B8C2F50164B5C4A005592F9 /* TextureBMP.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

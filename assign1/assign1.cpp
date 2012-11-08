@@ -11,6 +11,8 @@
 #include <GLUT/glut.h>
 #include <math.h>
 #include "pic.h"
+#include "RgbImage.h"
+
 
 using namespace std;
 
@@ -58,6 +60,10 @@ vector B0,T0,N0;
 vector B1,T1,N1;
 vector P;
 
+/* see <your pic directory>/pic.h for type Pic */
+Pic * g_pHeightData;
+
+
 // Animation Vectors and other Variables
 //vector AP,AT0,AT1,AB0,AB1,AN0,AN1;
 int check_to_animate_count = 0;
@@ -66,7 +72,7 @@ int anim_counter = 0;
 double anim_u = 0.0;
 
 // Animation Vector Arrays
-vector *AP,*AB,*AT;
+vector *AP,*AB,*AT,*AN;
 
 // Counters for these arrays
 int ac = 0;
@@ -81,6 +87,7 @@ vector vectorSub(vector a, vector b);
 double catmullRomSplineFormula(double p0, double p1, double p2, double p3, double t);
 double derivativeOfCatmullRomSplineFormula(double p0, double p1, double p2, double p3, double t);
 void drawVector(vector a);
+void drawScene(void);
 
 /* spline struct which contains how many control points, and an array of control points */
 struct spline {
@@ -102,14 +109,27 @@ int g_iRightMouseButton = 0;
 //int screenShotCounter = 0;
 
 typedef enum { ROTATE, TRANSLATE, SCALE } CONTROLSTATE;
+typedef enum { FREE, RIDING } VIEWMODE;
 
 CONTROLSTATE g_ControlState = ROTATE;
+VIEWMODE viewMode = RIDING;
 
 /* state of the world */
 float g_vLandRotate[3] = {0.0, 0.0, 0.0};
 float g_vLandTranslate[3] = {0.0, 0.0, 0.0};
 float g_vLandScale[3] = {1.0, 1.0, 1.0};
 
+
+bool animationPaused = false;
+
+void keyPressed (unsigned char key, int x, int y) {  
+    if (key == 'p' || key == 'P')
+        animationPaused = !animationPaused;
+    else if (key == 'f' || key == 'F')
+        viewMode = FREE;
+    else if (key == 'r' || key == 'R')
+        viewMode = RIDING;
+}  
 
 
 int loadSplines(char *argv) {
@@ -169,15 +189,52 @@ int loadSplines(char *argv) {
 void display() 
 {
     glLoadIdentity();
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+    glLineWidth(2.0); //test line width
+    
+
+    
+    drawScene(); // draw the scene and textures
+    
     ///           p        p+t       binormal
     //gluLookAt(0, 0, 20, 0, 0, 0, 0, 1, 0);
     
     //           p        p+t       binormal
 
-    
-    gluLookAt(AP[anim_counter].x, AP[anim_counter].y, AP[anim_counter].z,    
-              AP[anim_counter].x + AT[anim_counter].x, AP[anim_counter].y + AT[anim_counter].y, AP[anim_counter].z + AT[anim_counter].z,   
-              AB[anim_counter].x, AB[anim_counter].y, AB[anim_counter].z);
+    if (viewMode == RIDING)
+    {
+        int i = anim_counter; // readability
+        double px = AP[i].x;
+        double py = AP[i].y;
+        double pz = AP[i].z;
+        
+        // center the view point between the 2 tracks
+        px+=(AN[i].x/2);
+        py+=(AN[i].y/2);
+        pz+=(AN[i].z/2);
+        
+        // move the viewer's head a bit above the track
+        px+=(AB[i].x);
+        py+=(AB[i].y);
+        pz+=(AB[i].z);
+        
+        gluLookAt(px, py, pz,    
+                  AP[i].x + AT[i].x, AP[i].y + AT[i].y, AP[i].z + AT[i].z,   
+                  AB[i].x, AB[i].y, AB[i].z);
+    }
+    else if (viewMode == FREE)
+    {
+        gluLookAt(0, 0, 20, 0, 0, 0, 0, 1, 0);
+        
+        glTranslatef(g_vLandTranslate[0]-.5, g_vLandTranslate[1]-.5, g_vLandTranslate[2]);  // the x,y, and z translation
+        
+        glScalef(g_vLandScale[0], g_vLandScale[1], g_vLandScale[2]);
+        
+        glRotatef(g_vLandRotate[0], 1, 0, 0); // g_vLandRotate returns a theta (angle) value
+        glRotatef(g_vLandRotate[1], 0, 1, 0);
+        glRotatef(g_vLandRotate[2], 0, 0, 1);
+    }
 
     
     
@@ -186,17 +243,8 @@ void display()
 
     
     
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-    glLineWidth(2.0); //test line width
-
     
-    glTranslatef(g_vLandTranslate[0]-.5, g_vLandTranslate[1]-.5, g_vLandTranslate[2]);  // the x,y, and z translation
-    
-    glScalef(g_vLandScale[0], g_vLandScale[1], g_vLandScale[2]);
-    
-    glRotatef(g_vLandRotate[0], 1, 0, 0); // g_vLandRotate returns a theta (angle) value
-    glRotatef(g_vLandRotate[1], 0, 1, 0);
-    glRotatef(g_vLandRotate[2], 0, 0, 1);
+   
 
 
     glBegin(GL_POINTS);
@@ -494,24 +542,34 @@ void display()
     vector v0,v1,v2,v3,v4,v5,v6,v7;
     
     
-    double s = 0.005;
+    double s = 0.05;
     int counter = 0;
+    int drawCounter = 0;
     bool draw = false;
 
-    // FLAT TRACK SIDES:
+    // FLAT TRACK SIDES AND CROSSBARS:
     for (int t = 1; t < g_Splines[0].numControlPoints-2; t++)
     {
         draw = false;
-#define kNumLoopSkipsTrackCrossbars 10
+#define kNumLoopSkipsTrackCrossbars 20
         for (double u = 0.0; u < 1.0; u+=0.01)
         {
             counter++;
-            draw = false;
             if (counter == kNumLoopSkipsTrackCrossbars)
             {
                 draw = true;
                 counter = 0;
             }
+            if (draw == true)
+            {
+                drawCounter++;
+                if (drawCounter == 5)
+                {
+                    draw = false;
+                    drawCounter = 0;
+                }
+            }
+            
             double p0x = g_Splines[0].points[t-1].x;
             double p1x = g_Splines[0].points[t].x;
             double p2x = g_Splines[0].points[t+1].x;
@@ -674,17 +732,39 @@ void display()
         
             if (draw)
             {
-                // top face of cross-bar
-                glColor3f(0.3, 0.33, 0.71);
+                glEnable(GL_TEXTURE_2D);
+                glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                
                 glBegin(GL_QUADS);
-                drawVector(v2);
-                drawVector(v6);
-                drawVector(v7);
-                drawVector(v3);
+                
+                glTexCoord2f(0.0, 1.0); 
+                glVertex3f(v2.x, v2.y, v2.z);
+                
+                glTexCoord2f(1.0, 1.0); 
+                glVertex3f(v6.x, v6.y, v6.z);
+                
+                glTexCoord2f(1.0, 0.0); 
+                glVertex3f(v7.x,v7.y,v7.z);
+                
+                glTexCoord2f(0.0, 0.0); 
+                glVertex3f(v3.x,v3.y,v3.z);
+                
                 glEnd();
                 
+                glFlush();
+                glDisable(GL_TEXTURE_2D);
+
+//                // top face of cross-bar
+//                glColor3f(0.3, 0.33, 0.71);
+//                glBegin(GL_QUADS);
+//                drawVector(v2);
+//                drawVector(v6);
+//                drawVector(v7);
+//                drawVector(v3);
+//                glEnd();
+                
                 // front face of cross-bar
-                glColor3f(0.3, 0.30, 0.65);
+                glColor3f(0.9, 0.1, 0.0);
                 glBegin(GL_QUADS);
                 drawVector(v3);
                 drawVector(v7);
@@ -693,7 +773,7 @@ void display()
                 glEnd();
                 
                 // back face of cross-bar
-                glColor3f(0.3, 0.23, 0.71);
+                glColor3f(0.1, 0.1, 0.1);
                 glBegin(GL_QUADS);
                 drawVector(v6);
                 drawVector(v2);
@@ -702,7 +782,7 @@ void display()
                 glEnd();
                 
                 // bottom face of cross-bar
-                glColor3f(0.1, 0.13, 0.71);
+                glColor3f(0.4, 0.4, 0.4);
                 glBegin(GL_QUADS);
                 drawVector(v4);
                 drawVector(v5);
@@ -891,6 +971,8 @@ void mousebutton(int button, int state, int x, int y)
 
 void animate()
 {
+    if (animationPaused)
+        return;
     
     if(check_to_animate_count++ == kAnimCheckCountMax)
     {
@@ -984,6 +1066,165 @@ void animate()
 
 
 
+/*
+ * Read a texture map from a BMP bitmap file.
+ * Texture files taken from: 
+   * Wood planks - http://fc02.deviantart.net/fs71/f/2011/191/e/9/wood_plank_2_textures_by_cgsiino-d3ln7wa.jpg
+ *
+ */
+void loadTextureFromFile(char *filename)
+{    
+    cout<<endl<<"Loading texture from file "<<filename<<"."<<endl;
+	glClearColor (0.0, 0.0, 0.0, 0.0);
+	glShadeModel(GL_FLAT);
+	glEnable(GL_DEPTH_TEST);
+    
+    g_pHeightData = jpeg_read(filename, NULL);
+    if (!g_pHeightData)
+    {
+        printf ("error reading %s.\n", filename);
+        return;
+    }    
+	// Pixel alignment: each row is word aligned (aligned to a 4 byte boundary)
+	//    Therefore, no need to call glPixelStore( GL_UNPACK_ALIGNMENT, ... );
+    
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    // regular way of image data
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, g_pHeightData->pix);
+
+    
+//    // Mipmaps:
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//    
+//	gluBuild2DMipmaps(GL_TEXTURE_2D, 3,theTexMap.GetNumCols(), theTexMap.GetNumRows(),
+//                      GL_RGB, GL_UNSIGNED_BYTE, theTexMap.ImageData() );
+
+    
+}
+
+/*
+ * Draw the texture in the OpenGL graphics window
+ */
+void drawScene(void)
+{
+    
+    double ws = 100.0; // world scale
+    vector p0,p1,p2,p3,p4,p5,p6,p7;
+    p0.x = -ws;
+    p0.y = -ws;
+    p0.z = ws;
+    
+    p1.x = -ws;
+    p1.y = -ws;
+    p1.z = -ws;
+    
+    p2.x = ws;
+    p2.y = -ws;
+    p2.z = -ws;
+    
+    p3.x = ws;
+    p3.y = -ws;
+    p3.z = ws;
+    
+    p4.x = -ws;
+    p4.y = ws;
+    p4.z = ws;
+    
+    p5.x = -ws;
+    p5.y = ws;
+    p5.z = -ws;
+    
+    p6.x = ws;
+    p6.y = ws;
+    p6.z = -ws;
+    
+    p7.x = ws;
+    p7.y = ws;
+    p7.z = ws;
+    
+    
+    // sky front face
+    glBegin(GL_QUADS);
+    glColor3f(0.1f, 0.2f, 1.0f); // blue sky
+    drawVector(p0);
+    drawVector(p3);
+    drawVector(p2);
+    drawVector(p1);
+//    glEnd();
+
+    // sky back face
+//    glBegin(GL_QUADS);
+    drawVector(p7);
+    drawVector(p4);
+    drawVector(p5);
+    drawVector(p6);
+    glEnd();
+    
+    // sky right face
+//    glBegin(GL_QUADS);
+    drawVector(p3);
+    drawVector(p7);
+    drawVector(p6);
+    drawVector(p2);
+//    glEnd();
+
+    // sky left face
+//    glBegin(GL_QUADS);
+    drawVector(p4);
+    drawVector(p0);
+    drawVector(p1);
+    drawVector(p5);
+    glEnd();
+    
+    
+    
+    // GROUND (sky bottom face)
+    glBegin(GL_QUADS);
+    glColor3f(0.6, 0.3, 0.1); // ground color
+    drawVector(p1);
+    drawVector(p2);
+    drawVector(p6);
+    drawVector(p5);
+    glEnd();
+
+
+
+    
+    
+    
+    /*
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    
+    glBegin(GL_QUADS);
+    
+    glTexCoord2f(0.0, 0.0); 
+    glVertex3f(-1.0, -1.0, 0.0);
+    
+    glTexCoord2f(0.0, 1.0); 
+    glVertex3f(-1.0, 1.0, 0.0);
+    
+    glTexCoord2f(1.0, 1.0); 
+    glVertex3f(1.0, 1.0, 0.0);
+    
+    glTexCoord2f(1.0, 0.0); 
+    glVertex3f(1.0, -1.0, 0.0);
+    
+    glEnd();
+    
+    glFlush();
+    glDisable(GL_TEXTURE_2D);
+  */
+}
+
+
 int main (int argc, char ** argv)
 {
     if (argc<2)
@@ -1019,6 +1260,7 @@ int main (int argc, char ** argv)
     AP = new vector[g_Splines[0].numControlPoints * 1000];
     AB = new vector[g_Splines[0].numControlPoints * 1000];
     AT = new vector[g_Splines[0].numControlPoints * 1000];
+    AN = new vector[g_Splines[0].numControlPoints * 1000];
 
     
     // Bring in the data for the animation array
@@ -1069,7 +1311,8 @@ int main (int argc, char ** argv)
                 
                 // Load the animation arrays
                 AT[ac] = T0;
-                AB[ac] = B0;    
+                AB[ac] = B0;  
+                AN[ac] = N0;
                 
             }
             else if (t > 1)  // calculating further NTB sets (after the initial one)
@@ -1086,12 +1329,15 @@ int main (int argc, char ** argv)
                 
                 // Load the animation arrays
                 AT[ac] = T1;
-                AB[ac] = B1;                
+                AB[ac] = B1;
+                AN[ac] = N1;
                 
                 // for the next iteration:
                 B0 = B1; // the current B is the soon-to-be old B
-                N0 = N1; //     ''      N          ''           N
-                T0 = T1; //     ''      T          ''           T
+                
+                // These aren't necessary...
+//                N0 = N1; //     ''      N          ''           N
+//                T0 = T1; //     ''      T          ''           T
 
                 
             }
@@ -1103,7 +1349,13 @@ int main (int argc, char ** argv)
     
     
     
+    // TEXTURE MAPPING:
+    char *fileStr = "/Users/rcleary/Desktop/assign2_copied/assign1/woodplanks2.jpeg";
+    //    char *fileStr = "/Users/rcleary/Desktop/assign2_copied/assign1/TextureBMP/RedLeavesTexture.bmp";
+loadTextureFromFile( fileStr );
     
+    
+    glutKeyboardFunc(keyPressed);
     
     glutReshapeFunc(reshapeFunction);
     
