@@ -1,0 +1,1 @@
+I have added speed controls.  Press any key 1-9 and it will make the speed faster or slower (9 is fastest).

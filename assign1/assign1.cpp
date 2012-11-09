@@ -10,12 +10,46 @@
 #include <OpenGL/glu.h>
 #include <GLUT/glut.h>
 #include <math.h>
+#include <sstream>
 #include "pic.h"
 #include "RgbImage.h"
 
 using namespace std;
 
 #define kWORLDSCALE 100
+#define pathToScreenShots "/Users/rcleary/Desktop/assign2_copied/Screenshots/"
+
+bool screenShotMode = false;
+int screenShotCounter = 0;
+string fileNameArray [1000];
+
+/* Write a screenshot to the specified filename */
+void saveScreenshot (char *filename)
+{
+    int i, j;
+    Pic *in = NULL;
+    
+    if (filename == NULL)
+        return;
+    
+    /* Allocate a picture buffer */
+    in = pic_alloc(640, 480, 3, NULL);
+    
+    printf("File to save to: %s\n", filename);
+    
+    for (i=479; i>=0; i--) {
+        glReadPixels(0, 479-i, 640, 1, GL_RGB, GL_UNSIGNED_BYTE,
+                     &in->pix[i*in->nx*in->bpp]);
+    }
+    
+    if (jpeg_write(filename, in))
+        printf("File saved Successfully\n");
+    else
+        printf("Error in Saving\n");
+    
+    pic_free(in);
+}
+
 
 /* represents one control point along the spline */
 struct point {
@@ -61,9 +95,9 @@ vector B0,T0,N0;
 vector B1,T1,N1;
 vector P;
 
-GLuint texName[3];
+GLuint texName[5];
 //array of textures
-Pic * textureArray[3];
+Pic * textureArray[5];
 
 
 double c = 0.75; // constant used for distance between the tracks
@@ -118,6 +152,7 @@ int g_iRightMouseButton = 0;
 
 typedef enum { ROTATE, TRANSLATE, SCALE } CONTROLSTATE;
 typedef enum { FREE, RIDING } VIEWMODE;
+int SPEED = 1;
 
 CONTROLSTATE g_ControlState = ROTATE;
 VIEWMODE viewMode = RIDING;
@@ -137,6 +172,28 @@ void keyPressed (unsigned char key, int x, int y) {
         viewMode = FREE;
     else if (key == 'r' || key == 'R')
         viewMode = RIDING;
+    else if (key == '1')
+        SPEED = 1;
+    else if (key == '2')
+        SPEED = 2;
+    else if (key == '3')
+        SPEED = 3;
+    else if (key == '4')
+        SPEED = 4;
+    else if (key == '5')
+        SPEED = 5;
+    else if (key == '6')
+        SPEED = 6;
+    else if (key == '7')
+        SPEED = 7;
+    else if (key == '8')
+        SPEED = 8;
+    else if (key == '9')
+        SPEED = 9;
+    else if (key == 's' || key == 'S')
+    {
+        screenShotMode = !screenShotMode;  // Toggle screen shot mode on or off
+    }
 }  
 
 
@@ -369,209 +426,6 @@ void display()
     
     
     
-    // TRYING TO MAKE CUBES FOR THE SIDE RAILS
-    /* 
-    double s = 0.1;
-    for (int t = 1; t < g_Splines[0].numControlPoints-2; t++)
-    {
-        for (double u = 0.0; u < 1.0; u+=0.01)
-        {
-            double p0x = g_Splines[0].points[t-1].x;
-            double p1x = g_Splines[0].points[t].x;
-            double p2x = g_Splines[0].points[t+1].x;
-            double p3x = g_Splines[0].points[t+2].x;
-            P.x = catmullRomSplineFormula(p0x,p1x,p2x,p3x,u);
-            
-            double p0y = g_Splines[0].points[t-1].y;
-            double p1y = g_Splines[0].points[t].y;
-            double p2y = g_Splines[0].points[t+1].y;
-            double p3y = g_Splines[0].points[t+2].y;
-            P.y = catmullRomSplineFormula(p0y,p1y,p2y,p3y,u);
-            
-            double p0z = g_Splines[0].points[t-1].z;
-            double p1z = g_Splines[0].points[t].z;
-            double p2z = g_Splines[0].points[t+1].z;
-            double p3z = g_Splines[0].points[t+2].z;
-            P.z = catmullRomSplineFormula(p0z,p1z,p2z,p3z,u);
-            
-            glColor3f(0.5, 0.5, 0.5);
-            //            // scale the B and T vectors
-            //            T0.x *= s;
-            //            T0.y *= s;
-            //            T0.z *= s;
-            //            
-            //            B0.x *= s;
-            //            B0.y *= s;
-            //            B0.z *= s;
-            //            
-            vector v0 = P+B0-T0-N0;
-            vector v1 = P-B0-T0-N0;
-            vector v2 = P-B0-T0+N0;
-            vector v3 = P+B0-T0+N0;
-            
-            vector v4 = P+B0+T0-N0;
-            vector v5 = P-B0+T0-N0;
-            vector v6 = P-B0+T0+N0;
-            vector v7 = P+B0+T0+N0;
-            
-            //front face
-            glBegin(GL_QUADS);
-            drawVector(v0);
-            drawVector(v3);
-            drawVector(v2);
-            drawVector(v1);
-            glEnd();
-            
-            //top face
-            glBegin(GL_QUADS);
-            drawVector(v4);
-            drawVector(v7);
-            drawVector(v3);
-            drawVector(v0);
-            glEnd();
-            
-            //left face
-            glBegin(GL_QUADS);
-            drawVector(v4);
-            drawVector(v0);
-            drawVector(v1);
-            drawVector(v5);
-            glEnd();
-            
-            //right face
-            glBegin(GL_QUADS);
-            drawVector(v3);
-            drawVector(v7);
-            drawVector(v6);
-            drawVector(v2);
-            glEnd();
-            
-            //back face
-            glBegin(GL_QUADS);
-            drawVector(v7);
-            drawVector(v4);
-            drawVector(v5);
-            drawVector(v6);
-            glEnd();
-            
-            //bottom face
-            glBegin(GL_QUADS);
-            drawVector(v1);
-            drawVector(v2);
-            drawVector(v6);
-            drawVector(v5);
-            glEnd();
-            
-        }
-    } */
-        /*
-            
-            if (t == 1)
-            {
-                vector V0; // Arbitrary Vector used to calculate the Binormal B
-                V0.x = 0;
-                V0.y = 1;
-                V0.z = 0;
-                
-                
-                // Tangent Vector
-                T0.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, u);
-                T0.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
-                T0.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
-                
-                T0.x *= s;
-                T0.y *= s;
-                T0.z *= s;
-                
-                
-                // Normal Vector 
-                N0 = unitVector(crossProduct(T0, V0));  // N0 = unit(T0xV0)
-                
-                
-                // Binormal Vector
-                B0 = unitVector(crossProduct(T0, N0)); // B0 = unit(T0xN0)
-                
-                B0.x *= s;
-                B0.y *= s;
-                B0.z *= s;
-                
-                vector v0 = P+B0-T0-N0;
-                vector v1 = P-B0-T0-N0;
-                vector v2 = P-B0-T0+N0;
-                vector v3 = P+B0-T0+N0;
-                
-                vector v4 = P+B0+T0-N0;
-                vector v5 = P-B0+T0-N0;
-                vector v6 = P-B0+T0+N0;
-                vector v7 = P+B0+T0+N0;
-                
-                glBegin(GL_QUADS);
-                drawVector(v0);
-                drawVector(v1);
-                drawVector(v2);
-                drawVector(v3);
-                drawVector(v4);
-                drawVector(v5);
-                drawVector(v6);
-                drawVector(v7);
-                glEnd();
-                
-            }
-            else if (t > 1)  // calculating further NTB sets (after the initial one)
-            {
-                // Tangent Vector
-                T1.x = derivativeOfCatmullRomSplineFormula(p0x, p1x, p2x, p3x, u);
-                T1.y = derivativeOfCatmullRomSplineFormula(p0y, p1y, p2y, p3y, u);
-                T1.z = derivativeOfCatmullRomSplineFormula(p0z, p1z, p2z, p3z, u);
-                
-                T1.x *= s;
-                T1.y *= s;
-                T1.z *= s;
-                
-                
-                N1 = unitVector(crossProduct(B0,T1)); // N1 = unit(B0xT0) (note: T0 is essentially T1)
-                
-                B1 = unitVector(crossProduct(T1, N1)); // B1 = unit(T1xN1)
-                
-                B1.x *= s;
-                B1.y *= s;
-                B1.z *= s;
-                
-                
-                // Draw the second track
-                glColor3f(0.1, 0.56, 0.25);
-                vector v0 = P+B1-T1-N0+N1;
-                vector v1 = P-B1-T1-N0+N1;
-                vector v2 = P-B1-T1+N0+N1;
-                vector v3 = P+B1-T1+N0+N1;
-                
-                vector v4 = P+B1+T1-N0+N1;
-                vector v5 = P-B1+T1-N0+N1;
-                vector v6 = P-B1+T1+N0+N1;
-                vector v7 = P+B1+T1+N0+N1;
-                
-                glBegin(GL_QUADS);
-                drawVector(v0);
-                drawVector(v1);
-                drawVector(v2);
-                drawVector(v3);
-                drawVector(v4);
-                drawVector(v5);
-                drawVector(v6);
-                drawVector(v7);
-                glEnd();
-                
-                // for the next iteration:
-                B0 = B1; // the current B is the soon-to-be old B
-                N0 = N1; //     ''      N          ''           N
-                T0 = T1; //     ''      T          ''           T
-                
-            }
-        }
-    }
-           */
-   // glEnd();
-    
     
     vector v0,v1,v2,v3,v4,v5,v6,v7;
     
@@ -621,16 +475,7 @@ void display()
             double p2z = g_Splines[0].points[t+1].z;
             double p3z = g_Splines[0].points[t+2].z;
             P.z = catmullRomSplineFormula(p0z,p1z,p2z,p3z,u);
-            
-//            // scale the B and T vectors
-//            T0.x *= s;
-//            T0.y *= s;
-//            T0.z *= s;
-//            
-//            B0.x *= s;
-//            B0.y *= s;
-//            B0.z *= s;
-            
+                        
             v0 = P;
             v1 = P+T0;
             v2 = P+T0+B0;
@@ -786,17 +631,7 @@ void display()
                 glTexCoord2f(0.0, 0.0); 
                 glVertex3f(v3.x,v3.y,v3.z);
                 
-               
-
-//                // top face of cross-bar
-//                glColor3f(0.3, 0.33, 0.71);
-//                glBegin(GL_QUADS);
-//                drawVector(v2);
-//                drawVector(v6);
-//                drawVector(v7);
-//                drawVector(v3);
-//                glEnd();
-                
+            
                 // front face of cross-bar
                 drawVector(v3);
                 drawVector(v7);
@@ -827,6 +662,28 @@ void display()
 
     
     glutSwapBuffers();
+    
+    
+    // Save screen shots ( after the screen has been updated by swapping the buffers ):
+    if (screenShotMode == true)
+    {
+        
+        if (screenShotCounter < 1000)
+        {
+            
+            string fileNameStr = fileNameArray[screenShotCounter];
+            char *charStarOfFileNameStr = (char*)fileNameStr.c_str();
+            saveScreenshot(charStarOfFileNameStr);
+            screenShotCounter++;
+        }
+        else 
+        {
+            printf("Error: cannot print more than 1000 frames!");
+        }
+        
+        
+    }
+
 }
 
 
@@ -1015,12 +872,15 @@ void animate()
     if (animationPaused)
         return;
     
-    if(check_to_animate_count++ == kAnimCheckCountMax)
+    if(check_to_animate_count++ >= kAnimCheckCountMax)
     {
         check_to_animate_count = 0;
 
-        anim_counter++;
-        
+        if (anim_counter + SPEED <= anim_counter_max)
+            anim_counter+=SPEED; // THIS IS DETERMINED BY THE USER BY PRESSING 1,2,3,4, OR 5
+        else
+            anim_counter = anim_counter_max;
+            
         /* make the screen update */
         glutPostRedisplay();
     }
@@ -1151,6 +1011,7 @@ void loadTextureFromFile(char *filename,int n)
  * Sets up the lighting for the OpenGL scene.
  */
 void letThereBeLight() {
+    glEnable(GL_NORMALIZE);
     glEnable(GL_LIGHTING);
     
     // set up the Sun light
@@ -1231,7 +1092,7 @@ void drawScene(void)
     
     
     
-    // SKY TEXTURE
+    // CLOUDS TEXTURE
     glEnable(GL_TEXTURE_2D);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glBindTexture(GL_TEXTURE_2D, texName[1]);
@@ -1250,21 +1111,7 @@ void drawScene(void)
     glTexCoord2f(1.0, 1.0); 
     drawVector(p6);
     
-   
-    // next face (TOP OF SKY)
-    glTexCoord2f(0.0, 1.0); 
-    drawVector(p0);
-    
-    glTexCoord2f(0.0, 0.0); 
-    drawVector(p3);
-    
-    glTexCoord2f(1.0, 0.0); 
-    drawVector(p2);
-    
-    glTexCoord2f(1.0, 1.0); 
-    drawVector(p1);
-    
-    
+       
     // next face (fixed)
     glTexCoord2f(0.0, 0.0); 
     drawVector(p3);
@@ -1306,6 +1153,8 @@ void drawScene(void)
     glTexCoord2f(0.0, 1.0); 
     drawVector(p7);
 
+    glEnd();
+
     
     glFlush();
     glDisable(GL_TEXTURE_2D);
@@ -1313,18 +1162,10 @@ void drawScene(void)
 
     
     
-    
-    
-    
-    
-    
-    // GROUND FACE
-    
-    
     // GROUND TEXTURE
     glEnable(GL_TEXTURE_2D);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    glBindTexture(GL_TEXTURE_2D, texName[1]); // make GROUND texture active texture
+    glBindTexture(GL_TEXTURE_2D, texName[2]); // make GROUND texture active texture
     glBegin(GL_QUADS);
     
     glTexCoord2f(0.0, 1.0); 
@@ -1345,6 +1186,37 @@ void drawScene(void)
     glFlush();
     glDisable(GL_TEXTURE_2D);
     
+    
+    
+    
+    
+    
+    
+    // SUN TEXTURE
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glBindTexture(GL_TEXTURE_2D, texName[3]); // make GROUND texture active texture
+    glBegin(GL_QUADS);
+
+    // next face (TOP OF SKY)
+    glTexCoord2f(0.0, 1.0); 
+    drawVector(p0);
+    
+    glTexCoord2f(0.0, 0.0); 
+    drawVector(p3);
+    
+    glTexCoord2f(1.0, 0.0); 
+    drawVector(p2);
+    
+    glTexCoord2f(1.0, 1.0); 
+    drawVector(p1);
+    
+    
+    glEnd();
+    
+    glFlush();
+    glDisable(GL_TEXTURE_2D);
+
 
     
 //    // GROUND sky bottom face
@@ -1419,6 +1291,63 @@ int main (int argc, char ** argv)
         printf ("usage: %s <trackfile>\n", argv[0]);
         exit(0);
     }
+    
+    
+    
+    
+    // PRE-LOAD THE SCREEN SHOT FILE NAME ARRAY
+    for(int tmpCounter = 0; tmpCounter < 1000; tmpCounter++)
+    {
+        
+        string fileNameStr, onesPlaceStr, tensPlaceStr, hundredsPlaceStr;
+        int onesPlace = tmpCounter / 100;
+        int tensPlace = tmpCounter / 10;
+        int hundredsPlace = tmpCounter;
+        
+        
+        
+        
+        if (hundredsPlace > 9 && hundredsPlace < 100)
+            hundredsPlace %= 100;
+        else if (hundredsPlace > 99)
+            hundredsPlace %= 100;
+        
+        
+        if (tensPlace > 9 && tensPlace < 100)
+            tensPlace %= 10;
+        else if (tensPlace > 99)
+            tensPlace %= 100;
+        
+        if (hundredsPlace > 9 && hundredsPlace < 100)
+            hundredsPlace %= 10;
+        else if (hundredsPlace > 99)
+            hundredsPlace %= 100;
+        
+        
+        
+        
+        stringstream ss1, ss2, ss3;
+        ss1 << onesPlace;
+        ss1 >> onesPlaceStr;
+        
+        ss2 << tensPlace;
+        ss2 >> tensPlaceStr;
+        
+        ss3 << hundredsPlace;
+        ss3 >> hundredsPlaceStr;
+        
+        fileNameStr.append(pathToScreenShots);
+        fileNameStr.append(onesPlaceStr);
+        fileNameStr.append(tensPlaceStr);
+        fileNameStr.append(hundredsPlaceStr);
+        fileNameStr.append(".jpg");
+        
+        printf("%s\n",fileNameStr.c_str());
+        
+        
+        fileNameArray[tmpCounter] = fileNameStr;     
+    }
+   
     
     loadSplines(argv[1]);
     
@@ -1538,7 +1467,7 @@ int main (int argc, char ** argv)
     
     
     // LOAD ALL OF THE TEXTURES INTO MEMORY:    
-    glGenTextures(3, texName);
+    glGenTextures(4, texName);
 
     
     // taken from http://fc02.deviantart.net/fs71/f/2011/191/e/9/wood_plank_2_textures_by_cgsiino-d3ln7wa.jpg
@@ -1549,9 +1478,13 @@ int main (int argc, char ** argv)
     fileStr = "/Users/rcleary/Desktop/assign2_copied/assign1/sky1.jpeg";
     loadTextureFromFile(fileStr, 1);
     
-//    // taken from http://www.houstongrasssouth.net/wp-content/uploads/2009/03/palisades2.jpg
-//    fileStr = "/Users/rcleary/Desktop/assign2_copied/assign1/grass1.jpeg";
-//    loadTextureFromFile(fileStr, 2);
+    // taken from http://www.houstongrasssouth.net/wp-content/uploads/2009/03/palisades2.jpg
+    fileStr = "/Users/rcleary/Desktop/assign2_copied/assign1/grass1.jpeg";
+    loadTextureFromFile(fileStr, 2);
+
+    // taken from http://www.tysto.com/articles05/pics/sky/clouds-sun-bird1.jpg
+    fileStr = "/Users/rcleary/Desktop/assign2_copied/assign1/sun2.jpeg";
+    loadTextureFromFile(fileStr, 3);
 
     
    // glBindTexture(GL_TEXTURE_2D, texName[0]);

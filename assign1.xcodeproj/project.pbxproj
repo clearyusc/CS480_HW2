@@ -45,7 +45,9 @@
 		5B566BA2163901D200891163 /* zaxis.sp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = zaxis.sp; sourceTree = "<group>"; };
 		5B566BA41639032300891163 /* track.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = track.txt; sourceTree = "<group>"; };
 		5B60CEEC164CC8840009CAD5 /* sky1.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = sky1.jpeg; sourceTree = "<group>"; };
-		5B60CEED164CD7590009CAD5 /* grass1.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = grass1.jpeg; sourceTree = "<group>"; };
+		5B60CEEE164CE1520009CAD5 /* grass1.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = grass1.jpeg; sourceTree = "<group>"; };
+		5B60CEEF164CE33E0009CAD5 /* sun1.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = sun1.jpeg; sourceTree = "<group>"; };
+		5B60CEF0164CE4600009CAD5 /* sun2.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = sun2.jpeg; sourceTree = "<group>"; };
 		5B8C2F4A164B5C4A005592F9 /* RgbImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RgbImage.cpp; sourceTree = "<group>"; };
 		5B8C2F4B164B5C4A005592F9 /* RgbImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RgbImage.h; sourceTree = "<group>"; };
 		5B8C2F4C164B5C4A005592F9 /* TextureBMP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextureBMP.cpp; sourceTree = "<group>"; };
@@ -165,9 +167,11 @@
 				5B566BA41639032300891163 /* track.txt */,
 				610E7E26160BEA5100D0BBAA /* assign1.cpp */,
 				5B8C2F5E164B7AA5005592F9 /* woodplanks2.jpeg */,
+				5B60CEF0164CE4600009CAD5 /* sun2.jpeg */,
 				5B8C2F5D164B789B005592F9 /* woodplanks1.jpeg */,
-				5B60CEED164CD7590009CAD5 /* grass1.jpeg */,
+				5B60CEEE164CE1520009CAD5 /* grass1.jpeg */,
 				5B60CEEC164CC8840009CAD5 /* sky1.jpeg */,
+				5B60CEEF164CE33E0009CAD5 /* sun1.jpeg */,
 				5B8C2F48164B5C4A005592F9 /* TextureBMP */,
 				610E7E28160BEA5100D0BBAA /* GrandTeton-128.jpg */,
 				610E7E29160BEA5100D0BBAA /* GrandTeton-256.jpg */,
