@@ -13,8 +13,9 @@
 #include "pic.h"
 #include "RgbImage.h"
 
-
 using namespace std;
+
+#define kWORLDSCALE 100
 
 /* represents one control point along the spline */
 struct point {
@@ -60,14 +61,20 @@ vector B0,T0,N0;
 vector B1,T1,N1;
 vector P;
 
-/* see <your pic directory>/pic.h for type Pic */
-Pic * g_pHeightData;
+GLuint texName[3];
+//array of textures
+Pic * textureArray[3];
+
+
+double c = 0.75; // constant used for distance between the tracks
+
 
 
 // Animation Vectors and other Variables
 //vector AP,AT0,AT1,AB0,AB1,AN0,AN1;
 int check_to_animate_count = 0;
 int anim_counter = 0;
+int anim_counter_max;
 #define kAnimCheckCountMax 500
 double anim_u = 0.0;
 
@@ -82,7 +89,8 @@ vector crossProduct(vector a, vector b);
 vector unitVector(vector a);
 vector vectorAdd(vector a, vector b);
 vector vectorSub(vector a, vector b);
-
+vector vectorScalarMult(double s, vector a);
+void letThereBeLight();
 
 double catmullRomSplineFormula(double p0, double p1, double p2, double p3, double t);
 double derivativeOfCatmullRomSplineFormula(double p0, double p1, double p2, double p3, double t);
@@ -191,11 +199,10 @@ void display()
     glLoadIdentity();
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-    glLineWidth(2.0); //test line width
     
 
     
-    drawScene(); // draw the scene and textures
+    letThereBeLight(); // add in the light
     
     ///           p        p+t       binormal
     //gluLookAt(0, 0, 20, 0, 0, 0, 0, 1, 0);
@@ -204,24 +211,50 @@ void display()
 
     if (viewMode == RIDING)
     {
+        if (anim_counter == anim_counter_max) 
+            anim_counter = 0; // go back to the beginning of the track
+        
         int i = anim_counter; // readability
-        double px = AP[i].x;
-        double py = AP[i].y;
-        double pz = AP[i].z;
+        double px1 = AP[i].x;
+        double py1 = AP[i].y;
+        double pz1 = AP[i].z;
         
         // center the view point between the 2 tracks
-        px+=(AN[i].x/2);
-        py+=(AN[i].y/2);
-        pz+=(AN[i].z/2);
+        px1+=(c*AN[i].x/2);
+        py1+=(c*AN[i].y/2);
+        pz1+=(c*AN[i].z/2);
         
         // move the viewer's head a bit above the track
-        px+=(AB[i].x);
-        py+=(AB[i].y);
-        pz+=(AB[i].z);
+        px1+=(AB[i].x);
+        py1+=(AB[i].y);
+        pz1+=(AB[i].z);
         
-        gluLookAt(px, py, pz,    
-                  AP[i].x + AT[i].x, AP[i].y + AT[i].y, AP[i].z + AT[i].z,   
-                  AB[i].x, AB[i].y, AB[i].z);
+        
+        // the NEXT point (where you should look)
+        double px2 = AP[i+1].x;
+        double py2 = AP[i+1].y;
+        double pz2 = AP[i+1].z;
+        
+        // center the view point between the 2 tracks
+        px2+=(c*AN[i+1].x/2);
+        py2+=(c*AN[i+1].y/2);
+        pz2+=(c*AN[i+1].z/2);
+        
+        // move the viewer's head a bit above the track
+        px2+=(AB[i+1].x);
+        py2+=(AB[i+1].y);
+        pz2+=(AB[i+1].z);
+
+
+//        gluLookAt(px1, py1, pz1,    
+//                  AP[i].x + AT[i].x, AP[i].y + AT[i].y, AP[i].z + AT[i].z,   
+//                  AB[i].x, AB[i].y, AB[i].z);
+        
+       gluLookAt(px1, py1, pz1,    
+                px2, py2, pz2,   
+                AB[i].x, AB[i].y, AB[i].z);
+
+        
     }
     else if (viewMode == FREE)
     {
@@ -238,12 +271,12 @@ void display()
 
     
     
+    drawScene(); // draw the scene and textures
+
 //    //           p        p+t       binormal
 //    gluLookAt(P.x, P.y, P.z,    P.x + T1.x, P.y + T1.y, P.z + T1.z,    B1.x, B1.y, B1.z);
 
-    
-    
-    
+  
    
 
 
@@ -272,7 +305,8 @@ void display()
             P.z = catmullRomSplineFormula(p0z,p1z,p2z,p3z,u);
 
             
-            glColor3f(0.3, 0.8, 0.1); // a random color for now
+            glColor3f(0.1, 0.1, 0.5); // a random color for now
+            glLineWidth(10.0);
             glVertex3d(P.x, P.y, P.z); // px + nx, py + ny, pz+ nz fpr seoncd track
                 
             
@@ -300,7 +334,7 @@ void display()
             
             // Draw the second track
             glColor3f(0.6, 0.2, 0.34); // a diff color to distinguish the 2nd track
-            glVertex3d(P.x+N0.x, P.y+N0.y, P.z+N0.z); // px + nx, py + ny, pz+ nz for second track
+            glVertex3d(P.x+(c*N0.x), P.y+(c*N0.y), P.z+(c*N0.z)); // px + nx, py + ny, pz+ nz for second track
             
             }
             else if (t > 1)  // calculating further NTB sets (after the initial one)
@@ -317,7 +351,7 @@ void display()
                 
                 // Draw the second track
                 glColor3f(0.6, 0.2, 0.34); // a different color to distinguish the 2nd track
-                glVertex3d(P.x+N1.x, P.y+N1.y, P.z+N1.z); // px + nx, py + ny, pz + nz for second track
+                glVertex3d(P.x+(c*N1.x), P.y+(c*N1.y), P.z+(c*N1.z)); // px + nx, py + ny, pz + nz for second track
                 
                 
                 // for the next iteration:
@@ -644,10 +678,10 @@ void display()
                 B0.z *= s;
                 
                 
-                v4 = P+N0;
-                v5 = P+T0+N0;
-                v6 = P+T0+B0+N0;
-                v7 = P+B0+N0;
+                v4 = P+vectorScalarMult(c,N0);
+                v5 = P+T0+vectorScalarMult(c,N0);
+                v6 = P+T0+B0+vectorScalarMult(c,N0);
+                v7 = P+B0+vectorScalarMult(c,N0);
                 
                 if (draw)
                 {
@@ -697,10 +731,10 @@ void display()
                 B1.y *= s;
                 B1.z *= s;
                 
-                v4 = P+N1;
-                v5 = P+T0+N1;
-                v6 = P+T0+B0+N1;
-                v7 = P+B0+N1;
+                v4 = P+vectorScalarMult(c,N1);
+                v5 = P+T0+vectorScalarMult(c,N1);
+                v6 = P+T0+B0+vectorScalarMult(c,N1);
+                v7 = P+B0+vectorScalarMult(c,N1);
                 
                 if (draw)
                 {
@@ -732,9 +766,12 @@ void display()
         
             if (draw)
             {
+                // CROSS BARS
+                
                 glEnable(GL_TEXTURE_2D);
                 glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-                
+                glBindTexture(GL_TEXTURE_2D, texName[0]);
+
                 glBegin(GL_QUADS);
                 
                 glTexCoord2f(0.0, 1.0); 
@@ -749,10 +786,7 @@ void display()
                 glTexCoord2f(0.0, 0.0); 
                 glVertex3f(v3.x,v3.y,v3.z);
                 
-                glEnd();
-                
-                glFlush();
-                glDisable(GL_TEXTURE_2D);
+               
 
 //                // top face of cross-bar
 //                glColor3f(0.3, 0.33, 0.71);
@@ -764,31 +798,28 @@ void display()
 //                glEnd();
                 
                 // front face of cross-bar
-                glColor3f(0.9, 0.1, 0.0);
-                glBegin(GL_QUADS);
                 drawVector(v3);
                 drawVector(v7);
                 drawVector(v4);
                 drawVector(v0);
-                glEnd();
                 
                 // back face of cross-bar
-                glColor3f(0.1, 0.1, 0.1);
-                glBegin(GL_QUADS);
                 drawVector(v6);
                 drawVector(v2);
                 drawVector(v1);
                 drawVector(v5);
-                glEnd();
                 
                 // bottom face of cross-bar
-                glColor3f(0.4, 0.4, 0.4);
-                glBegin(GL_QUADS);
                 drawVector(v4);
                 drawVector(v5);
                 drawVector(v1);
                 drawVector(v0);
-                glEnd();
+
+                 glEnd();
+                
+                glFlush();
+                glDisable(GL_TEXTURE_2D);
+
             }
         }
     }
@@ -879,6 +910,16 @@ vector unitVector(vector a) {
     a.x /= magnitude;
     a.y /= magnitude;
     a.z /= magnitude;
+    
+    return a;
+}
+
+/* Performs scalar vector multiplication. */
+vector vectorScalarMult(double s, vector a)
+{
+    a.x *= s;
+    a.y *= s;
+    a.z *= s;
     
     return a;
 }
@@ -1068,34 +1109,32 @@ void animate()
 
 /*
  * Read a texture map from a BMP bitmap file.
- * Texture files taken from: 
-   * Wood planks - http://fc02.deviantart.net/fs71/f/2011/191/e/9/wood_plank_2_textures_by_cgsiino-d3ln7wa.jpg
- *
  */
-void loadTextureFromFile(char *filename)
+void loadTextureFromFile(char *filename,int n)
 {    
     cout<<endl<<"Loading texture from file "<<filename<<"."<<endl;
 	glClearColor (0.0, 0.0, 0.0, 0.0);
 	glShadeModel(GL_FLAT);
 	glEnable(GL_DEPTH_TEST);
     
-    g_pHeightData = jpeg_read(filename, NULL);
-    if (!g_pHeightData)
+    textureArray[texName[n]] = jpeg_read(filename, NULL);
+    if (!textureArray[texName[n]])
     {
         printf ("error reading %s.\n", filename);
         return;
     }    
-	// Pixel alignment: each row is word aligned (aligned to a 4 byte boundary)
-	//    Therefore, no need to call glPixelStore( GL_UNPACK_ALIGNMENT, ... );
-    
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glBindTexture(GL_TEXTURE_2D, texName[n]);
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    
 
     // regular way of image data
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, g_pHeightData->pix);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, textureArray[texName[n]]->pix);
 
     
 //    // Mipmaps:
@@ -1109,12 +1148,54 @@ void loadTextureFromFile(char *filename)
 }
 
 /*
- * Draw the texture in the OpenGL graphics window
+ * Sets up the lighting for the OpenGL scene.
+ */
+void letThereBeLight() {
+    glEnable(GL_LIGHTING);
+    
+    // set up the Sun light
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
+    
+    GLfloat light_ambient[] = {0.7,0.7,0.7,1.0};
+    GLfloat light_diffuse[] = {1.0,1.0,1.0,1.0};
+    GLfloat light_specular[] = {1.0,1.0,1.0,1.0};
+    //GLfloat light_position[] = {0.0,(0.5 * kWORLDSCALE),0.0,0.0};
+    GLfloat light_position[] = {-1.0,1.0,-1.0,0.0};
+
+    // LIGHT 0:
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    
+    
+    // LIGHT 1:
+    glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, light_specular);
+    light_position[0] = 1.0;
+    light_position[0] = 1.0;
+    light_position[0] = -1.0;
+    light_position[0] = 0.0;
+
+    
+    glLightfv(GL_LIGHT1, GL_POSITION, light_position);
+
+    
+    
+
+}
+
+/*
+ * Do the texture and sky and ground, etc.
  */
 void drawScene(void)
 {
     
-    double ws = 100.0; // world scale
+    
+    
+    double ws = kWORLDSCALE; // world scale
     vector p0,p1,p2,p3,p4,p5,p6,p7;
     p0.x = -ws;
     p0.y = -ws;
@@ -1149,25 +1230,101 @@ void drawScene(void)
     p7.z = ws;
     
     
-    // sky front face
+    
+    // SKY 
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glBindTexture(GL_TEXTURE_2D, texName[1]);
     glBegin(GL_QUADS);
-    glColor3f(0.1f, 0.2f, 1.0f); // blue sky
+    
+    glTexCoord2f(0.0, 1.0); 
+    glVertex3f(p5.x, p5.y, p5.z);
+    
+    glTexCoord2f(0.0, 0.0); 
+    glVertex3f(p1.x, p1.y, p1.z);
+    
+    glTexCoord2f(1.0, 0.0); 
+    glVertex3f(p2.x,p2.y,p2.z);
+    
+    glTexCoord2f(1.0, 1.0); 
+    glVertex3f(p6.x,p6.y,p6.z);
+    
+    glFlush();
+    glDisable(GL_TEXTURE_2D);
+
+    
+    
+    
+    // GROUND TEXTURE
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glBindTexture(GL_TEXTURE_2D, texName[1]); // make GROUND texture active texture
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0, 1.0); 
+    drawVector(p0);
+    
+    glTexCoord2f(0.0, 0.0); 
+    drawVector(p3);
+    
+    glTexCoord2f(1.0, 0.0); 
+    drawVector(p2);
+    
+    glTexCoord2f(1.0, 1.0); 
+    drawVector(p1);
+    
+    
+
+    // next face
+    glTexCoord2f(0.0, 0.0); 
+    drawVector(p5);
+    
+    glTexCoord2f(1.0, 0.0); 
+    drawVector(p1);
+    
+    glTexCoord2f(1.0, 1.0); 
+    drawVector(p2);
+    
+    glTexCoord2f(0.0, 1.0); 
+    drawVector(p6);
+
+    
+    // next face
+    drawVector(p5);
+    drawVector(p1);
+    drawVector(p2);
+    drawVector(p6);
+    
+    glFlush();
+    glDisable(GL_TEXTURE_2D);
+    
+
+    
+    
+    glBegin(GL_QUADS);
+   
+    glEnd();
+    
+    // GROUND sky bottom face
+    glColor3f(0.8f, 0.2f, 0.2f);  // ground color
+    glBegin(GL_QUADS);
     drawVector(p0);
     drawVector(p3);
     drawVector(p2);
     drawVector(p1);
 //    glEnd();
 
-    // sky back face
+    // sky top face
 //    glBegin(GL_QUADS);
+    glColor3f(0.2f, 1.0f, 1.0f); // blue sky
     drawVector(p7);
     drawVector(p4);
     drawVector(p5);
     drawVector(p6);
-    glEnd();
+//    glEnd();
     
     // sky right face
 //    glBegin(GL_QUADS);
+    glColor3f(0.4f, 0.5f, 0.0f); // blue sky
     drawVector(p3);
     drawVector(p7);
     drawVector(p6);
@@ -1176,23 +1333,30 @@ void drawScene(void)
 
     // sky left face
 //    glBegin(GL_QUADS);
+    glColor3f(0.4f, 0.5f, 0.7f); // blue sky
     drawVector(p4);
     drawVector(p0);
     drawVector(p1);
     drawVector(p5);
-    glEnd();
     
-    
-    
-    // GROUND (sky bottom face)
-    glBegin(GL_QUADS);
-    glColor3f(0.6, 0.3, 0.1); // ground color
-    drawVector(p1);
-    drawVector(p2);
-    drawVector(p6);
-    drawVector(p5);
-    glEnd();
+    //sky front face 
+    glColor3f(0.7, 0.4, 0.2);
+    drawVector(p4);
+    drawVector(p0);
+    drawVector(p3);
+    drawVector(p7);
 
+    glEnd();
+    
+ 
+
+    glTranslatef(g_vLandTranslate[0]-.5, g_vLandTranslate[1]-.5, g_vLandTranslate[2]);  // the x,y, and z translation
+    
+    glScalef(g_vLandScale[0], g_vLandScale[1], g_vLandScale[2]);
+    
+    glRotatef(g_vLandRotate[0], 1, 0, 0); // g_vLandRotate returns a theta (angle) value
+    glRotatef(g_vLandRotate[1], 0, 1, 0);
+    glRotatef(g_vLandRotate[2], 0, 0, 1);
 
 
     
@@ -1268,6 +1432,8 @@ int main (int argc, char ** argv)
     {
         for (double u = 0.0; u < 1.0; u+=0.01)
         {
+            anim_counter_max++;
+            
             double p0x = g_Splines[0].points[t-1].x;
             double p1x = g_Splines[0].points[t].x;
             double p2x = g_Splines[0].points[t+1].x;
@@ -1348,11 +1514,24 @@ int main (int argc, char ** argv)
     
     
     
+    // LOAD ALL OF THE TEXTURES INTO MEMORY:    
+    glGenTextures(3, texName);
+
     
-    // TEXTURE MAPPING:
+    // taken from http://fc02.deviantart.net/fs71/f/2011/191/e/9/wood_plank_2_textures_by_cgsiino-d3ln7wa.jpg
     char *fileStr = "/Users/rcleary/Desktop/assign2_copied/assign1/woodplanks2.jpeg";
-    //    char *fileStr = "/Users/rcleary/Desktop/assign2_copied/assign1/TextureBMP/RedLeavesTexture.bmp";
-loadTextureFromFile( fileStr );
+    loadTextureFromFile(fileStr, 0);
+    
+    // taken from http://fc08.deviantart.net/fs70/f/2010/131/b/9/Sky_53_by_Sed_rah_Stock.jpg
+    fileStr = "/Users/rcleary/Desktop/assign2_copied/assign1/sky1.jpeg";
+    loadTextureFromFile(fileStr, 1);
+    
+//    // taken from http://www.houstongrasssouth.net/wp-content/uploads/2009/03/palisades2.jpg
+//    fileStr = "/Users/rcleary/Desktop/assign2_copied/assign1/grass1.jpeg";
+//    loadTextureFromFile(fileStr, 2);
+
+    
+   // glBindTexture(GL_TEXTURE_2D, texName[0]);
     
     
     glutKeyboardFunc(keyPressed);
