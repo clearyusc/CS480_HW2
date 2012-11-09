@@ -1231,28 +1231,94 @@ void drawScene(void)
     
     
     
-    // SKY 
+    // SKY TEXTURE
     glEnable(GL_TEXTURE_2D);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glBindTexture(GL_TEXTURE_2D, texName[1]);
     glBegin(GL_QUADS);
     
+    // first face (fixed)
     glTexCoord2f(0.0, 1.0); 
-    glVertex3f(p5.x, p5.y, p5.z);
+    drawVector(p5);
     
     glTexCoord2f(0.0, 0.0); 
-    glVertex3f(p1.x, p1.y, p1.z);
+    drawVector(p1);
     
     glTexCoord2f(1.0, 0.0); 
-    glVertex3f(p2.x,p2.y,p2.z);
+    drawVector(p2);
     
     glTexCoord2f(1.0, 1.0); 
-    glVertex3f(p6.x,p6.y,p6.z);
+    drawVector(p6);
+    
+   
+    // next face (TOP OF SKY)
+    glTexCoord2f(0.0, 1.0); 
+    drawVector(p0);
+    
+    glTexCoord2f(0.0, 0.0); 
+    drawVector(p3);
+    
+    glTexCoord2f(1.0, 0.0); 
+    drawVector(p2);
+    
+    glTexCoord2f(1.0, 1.0); 
+    drawVector(p1);
+    
+    
+    // next face (fixed)
+    glTexCoord2f(0.0, 0.0); 
+    drawVector(p3);
+    
+    glTexCoord2f(0.0, 1.0); 
+    drawVector(p7);
+    
+    glTexCoord2f(1.0, 1.0); 
+    drawVector(p6);
+    
+    glTexCoord2f(1.0, 0.0); 
+    drawVector(p2);
+
+    
+    // next face
+    glTexCoord2f(1.0, 1.0); 
+    drawVector(p4);
+    
+    glTexCoord2f(1.0, 0.0); 
+    drawVector(p0);
+    
+    glTexCoord2f(0.0, 0.0); 
+    drawVector(p1);
+    
+    glTexCoord2f(0.0, 1.0); 
+    drawVector(p5);
+
+        
+    // next face (fixed)
+    glTexCoord2f(1.0, 1.0); 
+    drawVector(p4);
+
+    glTexCoord2f(1.0, 0.0); 
+    drawVector(p0);
+    
+    glTexCoord2f(0.0, 0.0); 
+    drawVector(p3);
+    
+    glTexCoord2f(0.0, 1.0); 
+    drawVector(p7);
+
     
     glFlush();
     glDisable(GL_TEXTURE_2D);
+    
 
     
+    
+    
+    
+    
+    
+    
+    // GROUND FACE
     
     
     // GROUND TEXTURE
@@ -1260,93 +1326,50 @@ void drawScene(void)
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glBindTexture(GL_TEXTURE_2D, texName[1]); // make GROUND texture active texture
     glBegin(GL_QUADS);
-    glTexCoord2f(0.0, 1.0); 
-    drawVector(p0);
-    
-    glTexCoord2f(0.0, 0.0); 
-    drawVector(p3);
-    
-    glTexCoord2f(1.0, 0.0); 
-    drawVector(p2);
-    
-    glTexCoord2f(1.0, 1.0); 
-    drawVector(p1);
-    
-    
-
-    // next face
-    glTexCoord2f(0.0, 0.0); 
-    drawVector(p5);
-    
-    glTexCoord2f(1.0, 0.0); 
-    drawVector(p1);
-    
-    glTexCoord2f(1.0, 1.0); 
-    drawVector(p2);
     
     glTexCoord2f(0.0, 1.0); 
-    drawVector(p6);
-
+    drawVector(p7);
     
-    // next face
+    glTexCoord2f(1.0, 1.0); 
+    drawVector(p4);
+    
+    glTexCoord2f(1.0, 0.0); 
     drawVector(p5);
-    drawVector(p1);
-    drawVector(p2);
+    
+    glTexCoord2f(0.0, 0.0); 
     drawVector(p6);
+    
+    
+    glEnd();
     
     glFlush();
     glDisable(GL_TEXTURE_2D);
     
 
     
-    
-    glBegin(GL_QUADS);
-   
-    glEnd();
-    
-    // GROUND sky bottom face
-    glColor3f(0.8f, 0.2f, 0.2f);  // ground color
-    glBegin(GL_QUADS);
-    drawVector(p0);
-    drawVector(p3);
-    drawVector(p2);
-    drawVector(p1);
-//    glEnd();
-
-    // sky top face
+//    // GROUND sky bottom face
+//    glColor3f(0.8f, 0.2f, 0.2f);  // ground color
 //    glBegin(GL_QUADS);
-    glColor3f(0.2f, 1.0f, 1.0f); // blue sky
-    drawVector(p7);
-    drawVector(p4);
-    drawVector(p5);
-    drawVector(p6);
+////    glEnd();
+//
+//    // sky top face
+////    glBegin(GL_QUADS);
+//    glColor3f(0.2f, 1.0f, 1.0f); // blue sky
+////    glEnd();
+//    
+//    // sky right face
+////    glBegin(GL_QUADS);
+//    glColor3f(0.4f, 0.5f, 0.0f); // blue sky
+////    glEnd();
+//
+//    // sky left face
+////    glBegin(GL_QUADS);
+//    glColor3f(0.4f, 0.5f, 0.7f); // blue sky
+//    
+//    //sky front face 
+//    glColor3f(0.7, 0.4, 0.2);
+//
 //    glEnd();
-    
-    // sky right face
-//    glBegin(GL_QUADS);
-    glColor3f(0.4f, 0.5f, 0.0f); // blue sky
-    drawVector(p3);
-    drawVector(p7);
-    drawVector(p6);
-    drawVector(p2);
-//    glEnd();
-
-    // sky left face
-//    glBegin(GL_QUADS);
-    glColor3f(0.4f, 0.5f, 0.7f); // blue sky
-    drawVector(p4);
-    drawVector(p0);
-    drawVector(p1);
-    drawVector(p5);
-    
-    //sky front face 
-    glColor3f(0.7, 0.4, 0.2);
-    drawVector(p4);
-    drawVector(p0);
-    drawVector(p3);
-    drawVector(p7);
-
-    glEnd();
     
  
 
